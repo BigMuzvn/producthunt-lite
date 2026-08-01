@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import Header from '../components/Header'
 import Hero from '../components/Hero'
 import TrustBanner from '../components/TrustBanner'
@@ -13,6 +15,19 @@ import Newsletter from '../components/Newsletter'
 import Footer from '../components/Footer'
 
 function LandingPage() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.hash) {
+      const el = document.querySelector(location.hash)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      }
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [location])
+
   return (
     <div className="app-shell">
       <Header />

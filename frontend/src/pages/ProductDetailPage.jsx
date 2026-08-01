@@ -1,19 +1,29 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getProductById } from '../services/product.service'
+import { voteProduct, unvoteProduct, getProductById, getMyVotes } from '../services/product.service'
+import { getToken } from '../services/auth.service'
+import { useAuthGate } from '../hooks/useAuthGate'
+import AuthPromptModal from '../components/AuthPromptModal'
 import './ProductDetailPage.css'
 
 export default function ProductDetailPage() {
   const { id } = useParams()
   const [product, setProduct] = useState(null)
+  const [voted, setVoted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const { promptOpen, requireAuth, goToLogin, closePrompt } = useAuthGate()
 
   useEffect(() => {
     async function fetchProduct() {
       try {
         const data = await getProductById(id)
         setProduct(data)
+
+        if (getToken()) {
+          const myVotes = await getMyVotes()
+          setVoted(myVotes.includes(id))
+        }
       } catch (err) {
         setError(err.message)
       } finally {
@@ -23,6 +33,26 @@ export default function ProductDetailPage() {
 
     fetchProduct()
   }, [id])
+
+  async function toggleVote() {
+  try {
+    if (voted) {
+      const updated = await unvoteProduct(id)
+      setProduct({ ...product, votesCount: updated.votesCount })
+      setVoted(false)
+    } else {
+      const updated = await voteProduct(id)
+      setProduct({ ...product, votesCount: updated.votesCount })
+      setVoted(true)
+    }
+  } catch (err) {
+    console.error(err.message)
+  }
+}
+
+function handleVoteClick() {
+  requireAuth(toggleVote)
+}
 
   if (loading) return <p className="detail-status">Chargement...</p>
   if (error) return <p className="detail-status">Erreur : {error}</p>
@@ -39,7 +69,13 @@ export default function ProductDetailPage() {
             <h1>{product.name}</h1>
             <p className="detail-tagline">{product.tagline}</p>
           </div>
-          <span className="votes-badge detail-votes">▲ {product.votesCount}</span>
+          <button
+            className={`votes-badge detail-votes ${voted ? 'voted' : ''}`}
+            onClick={handleVoteClick}
+          >
+            <span>▲</span>
+            <span>{product.votesCount}</span>
+          </button>
         </div>
 
         <div className="detail-meta">
@@ -52,10 +88,25 @@ export default function ProductDetailPage() {
 
         <p className="detail-description">{product.description}</p>
 
-        <a href={product.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-          Visiter le site
-        </a>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <a href={product.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+            Visiter le site
+          </a>
+          {product.contactUrl && (
+            <a href={product.contactUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+              Contacter le créateur
+            </a>
+          )}
+        </div>
       </div>
+
+      {promptOpen && (
+        <AuthPromptModal
+          message="Connecte-toi pour voter pour ce produit."
+          onLogin={goToLogin}
+          onClose={closePrompt}
+        />
+      )}
     </div>
   )
 }

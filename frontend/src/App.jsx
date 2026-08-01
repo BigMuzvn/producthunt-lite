@@ -3,8 +3,11 @@ import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import DashboardPage from './pages/DashboardPage'
-import ProtectedRoute from './components/ProtectedRoute'
 import ProductDetailPage from './pages/ProductDetailPage'
+import ProductsPage from './pages/ProductsPage'
+import CategoriesPage from './pages/CategoriesPage'
+import SubmitProductPage from './pages/SubmitProductPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/products" element={<ProductsPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route
           path="/dashboard"
           element={
@@ -21,7 +27,22 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/products/:id" element={<ProductDetailPage />} />
+        <Route
+          path="/submit"
+          element={
+            <ProtectedRoute>
+              <SubmitProductPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products/:id/edit"
+          element={
+            <ProtectedRoute>
+              <SubmitProductPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

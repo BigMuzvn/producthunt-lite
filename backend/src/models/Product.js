@@ -39,7 +39,11 @@ const productSchema = new mongoose.Schema({
   launchDate: {
     type: Date,
     default: Date.now
-  }
+  },
+  contactUrl: {
+  type: String,
+  default: ''
+},
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

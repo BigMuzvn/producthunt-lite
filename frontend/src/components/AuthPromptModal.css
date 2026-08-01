@@ -1,0 +1,37 @@
+.auth-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(33, 31, 48, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.auth-prompt-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 360px;
+  text-align: center;
+}
+
+.auth-prompt-modal h3 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--dark);
+  margin-bottom: 10px;
+}
+
+.auth-prompt-modal p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.auth-prompt-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}

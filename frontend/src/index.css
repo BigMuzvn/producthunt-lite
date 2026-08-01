@@ -5,7 +5,7 @@
 :root {
   --bg: #F4F3EF;
   --dark: #211F30;
-  --accent: #7C6CF4;
+  --accent: #514c8f;
   --accent-light: #EDEBFC;
   --amber: #FFB800;
   --btn-secondary: #E7E5DF;
@@ -94,13 +94,18 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .logo {
   font-family: var(--font-display);
-  /* font-size: 20px;
-  font-weight: 700; */
   color: var(--dark);
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
 .nav-links {
@@ -127,9 +132,7 @@ body {
   align-items: center;
 }
 
-/* Boutons navbar : style "coin coupé" emboîté, façon Greptile.
-   Ces règles s'appliquent SEULEMENT aux boutons dans .nav-actions,
-   elles remplacent temporairement .btn-primary / .btn-secondary génériques. */
+/* Boutons navbar : style "coin coupé" emboîté, façon Greptile. */
 .nav-actions .btn-secondary {
   background: var(--dark);
   color: white;
@@ -164,6 +167,24 @@ body {
   box-shadow: none;
 }
 
+/* ===== Assistants (icônes) ===== */
+.nav-assistants {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-assistants .botass img {
+  border: #141319 solid 1px;
+  border-radius: 28px;
+  padding: 5px;
+}
+
+.nav-assistants .botass img:hover {
+  transition-duration: 0.3s;
+  transform: scale(1.08);
+  background: var(--accent);
+}
+
 /* ===== Menu mobile ===== */
 .menu-toggle {
   display: none;
@@ -179,20 +200,53 @@ body {
     display: block;
   }
 
-  .nav-links {
+  .nav-menu {
     display: none;
   }
 
-  .nav-links-open {
+  .nav-menu-open {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
+    gap: 0;
     position: absolute;
-    top: 60px;
-    left: 0;
-    right: 0;
+    top: calc(100% + 18px);
+    left: -20px;
+    right: -20px;
     background: white;
-    padding: 20px;
-    gap: 12px;
+    padding: 24px 20px 28px;
+    border-bottom: 1px solid rgba(33, 31, 48, 0.08);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-menu-open .nav-links {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .nav-menu-open .nav-assistants {
+    justify-content: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(33, 31, 48, 0.08);
+  }
+
+  .nav-menu-open .nav-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(33, 31, 48, 0.08);
+  }
+
+  .nav-menu-open .nav-actions .btn-primary,
+  .nav-menu-open .nav-actions .btn-secondary {
+    width: 100%;
+    text-align: center;
+    clip-path: none;
+    border-radius: 8px;
+    margin-right: 0;
+    padding: 12px 20px;
   }
 }
 
@@ -203,6 +257,15 @@ body {
   background-image: url(/src/assets/s.svg);
   background-size:cover;
 }
+
+@media (max-width: 768px) {
+  .hero {
+    background-image: url('/src/assets/hero-bg-mobile.png');
+    background-position: center;
+    background-size: cover;
+  }
+}
+
 
 .hero h1 {
   font-family: var(--font-display);
@@ -227,9 +290,41 @@ body {
   gap: 12px;
 }
 
+
+.hero-search {
+  display: flex;
+  gap: 8px;
+  max-width: 420px;
+  margin: 24px auto 0;
+}
+
+.hero-search input {
+  flex: 1;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--btn-secondary);
+  font-size: 14px;
+  font-family: 'Inter', Arial, sans-serif;
+}
+
+.hero-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 108, 244, 0.15);
+}
+
 @media (max-width: 768px) {
   .hero h1 {
     font-size: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-actions {
+    flex-direction: column;
+  }
+  .hero-search {
+    flex-direction: column;
   }
 }
 
@@ -354,6 +449,15 @@ body {
   min-width: 48px;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
+}
+.votes-badge.voted {
+  background: var(--accent);
+  color: white;
+  cursor: default;
+  pointer-events: auto;
+}
+.votes-badge:not(.voted):hover {
+  background: var(--accent-bg, #EDEBFD);
 }
 
 .votes-badge:hover {
@@ -609,11 +713,11 @@ body {
 }
 
 .store-card-icon-dark {
-  background: var(--dark);
+  background:#bdbbe4;
 }
 
 .store-card-icon-accent {
-  background: var(--accent);
+  background:#bdbbe4;
 }
 
 .store-card-stars {
@@ -914,3 +1018,6 @@ body {
   padding-left: 32px;
   padding-right: 32px;
 }
+
+
+
