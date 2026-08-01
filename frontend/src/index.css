@@ -260,7 +260,7 @@ body {
 
 @media (max-width: 768px) {
   .hero {
-    background-image: url('/src/assets/hero-bg-mobile.png');
+    background-image: url('../src/assets/hero-bg-mobile.png');
     background-position: center;
     background-size: cover;
   }
