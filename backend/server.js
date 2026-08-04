@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import categoryRoutes from './src/routes/category.routes.js';
 import productRoutes from './src/routes/product.routes.js';
+import utilRoutes from './src/routes/util.routes.js';
 
 
 dotenv.config();
@@ -25,3 +26,6 @@ app.use('/api/products', productRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+app.use('/api/utils', utilRoutes);

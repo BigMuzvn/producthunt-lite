@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { register, saveAuth } from '../services/auth.service'
 import './AuthPages.css'
+import { validateEmail } from '../services/util.service'
+
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -10,22 +12,54 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const [emailCheck, setEmailCheck] = useState(null)
+  const [checkingEmail, setCheckingEmail] = useState(false)
+
+
+  async function handleEmailBlur() {
+  if (!email) return
+  setCheckingEmail(true)
+  try {
+    const result = await validateEmail(email)
+    setEmailCheck(result)
+  } catch (err) {
+  console.error('Erreur validation email:', err.message)
+  setEmailCheck(null)
+  } finally {
+    setCheckingEmail(false)
+  }
+}
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
 
-    try {
-      const data = await register(name, email, password)
-      saveAuth(data.token, data.user)
-      navigate('/dashboard')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+  if (checkingEmail) {
+    setError('Vérification de l\'email en cours, réessaie dans un instant.')
+    return
   }
+
+  if (!emailCheck || !emailCheck.formatValid || !emailCheck.mxFound) {
+    setError('Merci de renseigner un email valide avant de continuer.')
+    return
+  }
+
+  if (emailCheck.disposable) {
+    setError('Les adresses email jetables ne sont pas acceptées.')
+    return
+  }
+
+  setLoading(true)
+  try {
+    const data = await register(name, email, password)
+    saveAuth(data.token, data.user)
+    navigate('/dashboard')
+  } catch (err) {
+    setError(err.message)
+  } finally {
+    setLoading(false)
+  }
+}
 
   return (
     <div className="auth-page">
@@ -56,13 +90,24 @@ export default function SignupPage() {
             <div className="auth-field">
               <label htmlFor="email">Email</label>
               <input
-                id="email"
-                type="email"
-                placeholder="me@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+  id="email"
+  type="email"
+  placeholder="me@example.com"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  onBlur={handleEmailBlur}
+  required
+/>
+{checkingEmail && <p style={{ fontSize: 12, color: '#999' }}>Vérification de l'email...</p>}
+{emailCheck && !checkingEmail && (
+  <p style={{ fontSize: 12, color: emailCheck.formatValid && emailCheck.mxFound ? '#1E7A3F' : '#B3261E' }}>
+    {emailCheck.disposable
+      ? '⚠️ Cet email semble être une adresse jetable'
+      : emailCheck.formatValid && emailCheck.mxFound
+        ? '✓ Email valide'
+        : '⚠️ Cet email semble invalide'}
+  </p>
+)}
             </div>
 
             <div className="auth-field">
