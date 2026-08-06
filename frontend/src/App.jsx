@@ -8,6 +8,7 @@ import ProductsPage from './pages/ProductsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import SubmitProductPage from './pages/SubmitProductPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import VerifyOtpPage from './pages/VerifyOtpPage'
 
 function App() {
   return (
@@ -42,6 +43,10 @@ function App() {
               <SubmitProductPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/verify-otp"
+          element={<VerifyOtpPage />}
         />
       </Routes>
     </BrowserRouter>

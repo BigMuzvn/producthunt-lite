@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login, saveAuth } from '../services/auth.service'
+import { login, saveAuth, resendOtp } from '../services/auth.service'
 import './AuthPages.css'
 
 export default function LoginPage() {
@@ -20,11 +20,22 @@ export default function LoginPage() {
       saveAuth(data.token, data.user)
       navigate('/dashboard')
     } catch (err) {
+      if (err.message === 'Compte non vérifié') {
+        try {
+          await resendOtp(email)
+        } catch (resendError) {
+          console.error('Erreur envoi OTP:', resendError.message)
+        }
+        navigate('/verify-otp', { state: { email } })
+        return
+      }
       setError(err.message)
     } finally {
       setLoading(false)
     }
   }
+
+  // ... reste du fichier inchangé
 
   return (
     <div className="auth-page">

@@ -20,6 +20,18 @@ const userSchema = new mongoose.Schema({
   avatarUrl: {
     type: String,
     default: ''
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+  otpCode: {
+    type: String,
+    default: null
+  },
+  otpExpires: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
 

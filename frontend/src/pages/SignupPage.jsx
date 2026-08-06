@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register, saveAuth } from '../services/auth.service'
+import { register, } from '../services/auth.service'
 import './AuthPages.css'
 import { validateEmail } from '../services/util.service'
 
@@ -38,12 +38,10 @@ export default function SignupPage() {
     setError('Vérification de l\'email en cours, réessaie dans un instant.')
     return
   }
-
   if (!emailCheck || !emailCheck.formatValid || !emailCheck.mxFound) {
     setError('Merci de renseigner un email valide avant de continuer.')
     return
   }
-
   if (emailCheck.disposable) {
     setError('Les adresses email jetables ne sont pas acceptées.')
     return
@@ -51,9 +49,8 @@ export default function SignupPage() {
 
   setLoading(true)
   try {
-    const data = await register(name, email, password)
-    saveAuth(data.token, data.user)
-    navigate('/dashboard')
+    await register(name, email, password)
+    navigate('/verify-otp', { state: { email } })
   } catch (err) {
     setError(err.message)
   } finally {

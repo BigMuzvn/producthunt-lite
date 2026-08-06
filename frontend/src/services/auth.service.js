@@ -32,3 +32,17 @@ export function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
 }
+
+export function verifyOtp(email, otpCode) {
+  return apiFetch('/auth/verify-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email, otpCode })
+  });
+}
+
+export function resendOtp(email) {
+  return apiFetch('/auth/resend-otp', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+}
