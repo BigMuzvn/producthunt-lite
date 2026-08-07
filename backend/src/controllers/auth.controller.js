@@ -150,3 +150,148 @@ export const login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Email requis' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Message volontairement neutre : on ne révèle pas si l'email existe ou non
+      return res.status(200).json({ message: 'Si ce compte existe, un code a été envoyé.' });
+    }
+
+    const otpCode = generateOtp();
+    user.otpCode = otpCode;
+    user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    await sendOtpEmail(user.email, otpCode);
+
+    res.status(200).json({ message: 'Si ce compte existe, un code a été envoyé.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otpCode, newPassword } = req.body;
+
+    if (!email || !otpCode || !newPassword) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    if (user.otpCode !== otpCode) {
+      return res.status(400).json({ message: 'Code incorrect' });
+    }
+
+    if (user.otpExpires < new Date()) {
+      return res.status(400).json({ message: 'Ce code a expiré, demande-en un nouveau' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.otpCode = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: 'Mot de passe mis à jour avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: 'Mot de passe mis à jour avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const changeEmail = async (req, res) => {
+  try {
+    const { newEmail, currentPassword } = req.body;
+
+    if (!newEmail || !currentPassword) {
+      return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Mot de passe incorrect' });
+    }
+
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
+    }
+
+    user.email = newEmail;
+    await user.save();
+
+    res.status(200).json({ message: 'Email mis à jour avec succès', email: user.email });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const { currentPassword } = req.body;
+
+    if (!currentPassword) {
+      return res.status(400).json({ message: 'Mot de passe requis pour confirmer' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Mot de passe incorrect' });
+    }
+
+    await user.deleteOne();
+
+    res.status(200).json({ message: 'Compte supprimé avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};

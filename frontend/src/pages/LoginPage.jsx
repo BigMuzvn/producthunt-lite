@@ -74,6 +74,9 @@ export default function LoginPage() {
                 required
               />
             </div>
+            <p className="auth-subtext" style={{ marginTop: 12, textAlign: 'right' }}>
+              <Link to="/forgot-password">Mot de passe oublié ?</Link>
+            </p>
 
             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
               {loading ? 'Connexion...' : 'Se connecter'}

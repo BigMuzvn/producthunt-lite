@@ -46,3 +46,41 @@ export function resendOtp(email) {
     body: JSON.stringify({ email })
   });
 }
+
+export function forgotPassword(email) {
+  return apiFetch('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+}
+
+export function resetPassword(email, otpCode, newPassword) {
+  return apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ email, otpCode, newPassword })
+  });
+}
+
+export function changePassword(currentPassword, newPassword) {
+  return apiFetch('/auth/change-password', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+}
+
+export function changeEmail(newEmail, currentPassword) {
+  return apiFetch('/auth/change-email', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    body: JSON.stringify({ newEmail, currentPassword })
+  });
+}
+
+export function deleteAccount(currentPassword) {
+  return apiFetch('/auth/delete-account', {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    body: JSON.stringify({ currentPassword })
+  });
+}

@@ -9,6 +9,7 @@ import CategoriesPage from './pages/CategoriesPage'
 import SubmitProductPage from './pages/SubmitProductPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import VerifyOtpPage from './pages/VerifyOtpPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 
 function App() {
   return (
@@ -47,6 +48,10 @@ function App() {
         <Route
           path="/verify-otp"
           element={<VerifyOtpPage />}
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
         />
       </Routes>
     </BrowserRouter>
