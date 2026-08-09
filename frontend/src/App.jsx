@@ -10,6 +10,8 @@ import SubmitProductPage from './pages/SubmitProductPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import VerifyOtpPage from './pages/VerifyOtpPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import AdminPage from './pages/AdminPage'
+import AdminRoute from './components/AdminRoute'
 
 function App() {
   return (
@@ -53,6 +55,7 @@ function App() {
           path="/forgot-password"
           element={<ForgotPasswordPage />}
         />
+        <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
       </Routes>
     </BrowserRouter>
   )

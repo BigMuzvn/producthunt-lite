@@ -11,29 +11,34 @@ export default function LoginPage() {
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    try {
-      const data = await login(email, password)
-      saveAuth(data.token, data.user)
+  try {
+    const data = await login(email, password)
+    saveAuth(data.token, data.user)
+
+    if (data.user.isAdmin || data.user.isSuperAdmin) {
+      navigate('/admin')
+    } else {
       navigate('/dashboard')
-    } catch (err) {
-      if (err.message === 'Compte non vérifié') {
-        try {
-          await resendOtp(email)
-        } catch (resendError) {
-          console.error('Erreur envoi OTP:', resendError.message)
-        }
-        navigate('/verify-otp', { state: { email } })
-        return
-      }
-      setError(err.message)
-    } finally {
-      setLoading(false)
     }
+  } catch (err) {
+    if (err.message === 'Compte non vérifié') {
+      try {
+        await resendOtp(email)
+      } catch (resendError) {
+        console.error('Erreur envoi OTP:', resendError.message)
+      }
+      navigate('/verify-otp', { state: { email } })
+      return
+    }
+    setError(err.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   // ... reste du fichier inchangé
 

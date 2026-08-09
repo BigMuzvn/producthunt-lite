@@ -1,4 +1,5 @@
 import Product from '../models/product.js';
+import User from '../models/User.js';
 
 export const getProducts = async (req, res) => {
   try {
@@ -44,6 +45,10 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
+    const requester = await User.findById(req.userId);
+if (requester?.isAdmin) {
+  return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas soumettre de produits' });
+}
     const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId } = req.body;
 
     if (!name || !tagline || !description || !websiteUrl || !categoryId) {
@@ -72,6 +77,10 @@ import Vote from '../models/Vote.js';
 
 export const voteProduct = async (req, res) => {
   try {
+    const requester = await User.findById(req.userId);
+if (requester?.isAdmin) {
+  return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas voter' });
+}
     const productId = req.params.id;
     const userId = req.userId;
 

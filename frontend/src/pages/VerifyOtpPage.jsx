@@ -15,19 +15,24 @@ export default function VerifyOtpPage() {
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const data = await verifyOtp(email, code)
-      saveAuth(data.token, data.user)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
+  try {
+    const data = await verifyOtp(email, code)
+    saveAuth(data.token, data.user)
+
+    if (data.user.isAdmin || data.user.isSuperAdmin) {
+      navigate('/admin')
+    } else {
       navigate('/dashboard')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
     }
+  } catch (err) {
+    setError(err.message)
+  } finally {
+    setLoading(false)
   }
+}
 
   async function handleResend() {
     setError('')

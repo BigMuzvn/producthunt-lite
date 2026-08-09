@@ -5,6 +5,7 @@ import { getUser } from '../services/auth.service'
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const user = getUser()
+  const isAdminAccount = user?.isAdmin || user?.isSuperAdmin
 
   function closeMenu() {
     setIsMenuOpen(false)
@@ -18,7 +19,7 @@ function Header() {
         </Link>
 
         <button className="menu-toggle" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-      <img src={isMenuOpen ? '/src/assets/cross.png' : '/src/assets/list.png'} alt="Menu" />
+          <img src={isMenuOpen ? '/src/assets/cross.png' : '/src/assets/list.png'} alt="Menu" />
         </button>
 
         <div className={`nav-menu ${isMenuOpen ? 'nav-menu-open' : ''}`}>
@@ -43,7 +44,11 @@ function Header() {
 
           <div className="nav-actions">
             {user ? (
-              <Link to="/dashboard" className="btn btn-primary" onClick={closeMenu}>{user.name}</Link>
+              isAdminAccount ? (
+                <Link to="/admin" className="btn btn-primary" onClick={closeMenu}>Administrateur</Link>
+              ) : (
+                <Link to="/dashboard" className="btn btn-primary" onClick={closeMenu}>{user.name}</Link>
+              )
             ) : (
               <>
                 <Link to="/login" className="btn btn-secondary" onClick={closeMenu}>Se connecter</Link>

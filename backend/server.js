@@ -6,6 +6,7 @@ import connectDB from './src/config/db.js';
 import categoryRoutes from './src/routes/category.routes.js';
 import productRoutes from './src/routes/product.routes.js';
 import utilRoutes from './src/routes/util.routes.js';
+import adminRoutes from './src/routes/admin.routes.js';
 
 
 dotenv.config();
@@ -29,3 +30,5 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 
 app.use('/api/utils', utilRoutes);
+
+app.use('/api/admin', adminRoutes);

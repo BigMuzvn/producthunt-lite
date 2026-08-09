@@ -82,9 +82,9 @@ export const verifyOtp = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
-      token,
-      user: { id: user._id, name: user.name, email: user.email }
-    });
+  token,
+  user: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin, isSuperAdmin: user.isSuperAdmin }
+});
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
@@ -144,7 +144,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email }
+      user: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin, isSuperAdmin: user.isSuperAdmin }
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
