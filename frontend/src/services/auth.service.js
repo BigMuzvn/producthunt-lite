@@ -69,6 +69,14 @@ export function changePassword(currentPassword, newPassword) {
   });
 }
 
+export function changeName(name) {
+  return apiFetch('/auth/change-name', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    body: JSON.stringify({ name })
+  });
+}
+
 export function changeEmail(newEmail, currentPassword) {
   return apiFetch('/auth/change-email', {
     method: 'PUT',

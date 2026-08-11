@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 
-export function getProducts() {
-  return apiFetch('/products');
+export function getProducts(sort = 'votes') {
+  return apiFetch(`/products?sort=${sort}`);
 }
 
 export function getProductById(id) {
@@ -30,8 +30,8 @@ export function getMyProducts() {
   });
 }
 
-export function getProductsByCategory(categoryId) {
-  return apiFetch(`/products?categoryId=${categoryId}`);
+export function getProductsByCategory(categoryId, sort = 'votes') {
+  return apiFetch(`/products?categoryId=${categoryId}&sort=${sort}`);
 }
 
 export function updateProduct(id, data) {
@@ -63,6 +63,6 @@ export function unvoteProduct(id) {
   });
 }
 
-export function searchProducts(query) {
-  return apiFetch(`/products?search=${encodeURIComponent(query)}`);
+export function searchProducts(query, sort = 'votes') {
+  return apiFetch(`/products?search=${encodeURIComponent(query)}&sort=${sort}`);
 }

@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect } from '../middleware/auth.middleware.js';
 import { isAdmin } from '../middleware/isAdmin.middleware.js';
+import { otpRequestLimiter, otpVerifyLimiter } from '../middleware/rateLimiter.middleware.js';
 import {
   getStats,
   getAllUsers,
@@ -33,10 +34,10 @@ router.post('/create-admin', createAdmin);
 
 // Profil de l'admin connecté
 router.put('/profile/name', updateOwnName);
-router.post('/profile/email/request-otp', requestEmailChangeOtp);
-router.post('/profile/email/confirm', confirmEmailChange);
-router.post('/profile/password/request-otp', requestPasswordChangeOtp);
-router.post('/profile/password/confirm', confirmPasswordChange);
+router.post('/profile/email/request-otp', otpRequestLimiter, requestEmailChangeOtp);
+router.post('/profile/email/confirm', otpVerifyLimiter, confirmEmailChange);
+router.post('/profile/password/request-otp', otpRequestLimiter, requestPasswordChangeOtp);
+router.post('/profile/password/confirm', otpVerifyLimiter, confirmPasswordChange);
 
 // Gestion des autres admins (super admin uniquement, vérifié dans le controller)
 router.put('/admins/:id', updateOtherAdmin);

@@ -46,5 +46,11 @@ const productSchema = new mongoose.Schema({
 },
 }, { timestamps: true });
 
+// Index de performance pour les filtres et tris fréquents
+productSchema.index({ categoryId: 1 });
+productSchema.index({ makerId: 1 });
+productSchema.index({ votesCount: -1, createdAt: -1 });
+productSchema.index({ createdAt: -1 });
+
 const Product = mongoose.model('Product', productSchema);
 export default Product;

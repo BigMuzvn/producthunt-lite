@@ -39,7 +39,7 @@ function ProductCard({ _id, name, tagline, logoUrl, votesCount, initiallyVoted =
     <>
       <article className="product-card">
         <div className="product-body" onClick={handleCardClick}>
-          <img src={logoUrl} alt={name} className="product-logo" />
+          <img src={logoUrl || 'https://placehold.co/48'} alt={name} className="product-logo" loading="lazy" />
           <div className="product-info">
             <h3>{name}</h3>
             <p>{tagline}</p>

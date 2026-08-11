@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getProducts, getMyVotes } from '../services/product.service'
 import { getToken } from '../services/auth.service'
 import ProductCard from './ProductCard'
+import ProductSkeleton from './ProductSkeleton'
 
 function TopProducts() {
   const [products, setProducts] = useState([])
@@ -29,9 +30,6 @@ function TopProducts() {
     fetchData()
   }, [])
 
-  if (loading) return <p>Chargement des produits...</p>
-  if (error) return <p>Erreur : {error}</p>
-
   return (
     <section id="top-products">
       <div className="container">
@@ -39,7 +37,9 @@ function TopProducts() {
           <p className="section-eyebrow">Top produits</p>
           <h2>Les plus populaires aujourd'hui</h2>
         </div>
-        {products.map(product => (
+        {loading && <ProductSkeleton count={3} />}
+        {error && <p>Erreur : {error}</p>}
+        {!loading && !error && products.map(product => (
           <ProductCard key={product._id} {...product} initiallyVoted={votedIds.has(product._id)} />
         ))}
       </div>

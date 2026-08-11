@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register, } from '../services/auth.service'
+import { register } from '../services/auth.service'
 import './AuthPages.css'
 import { validateEmail } from '../services/util.service'
+import PasswordRequirements from '../components/PasswordRequirements'
 
 
 export default function SignupPage() {
@@ -14,6 +15,10 @@ export default function SignupPage() {
   const navigate = useNavigate()
   const [emailCheck, setEmailCheck] = useState(null)
   const [checkingEmail, setCheckingEmail] = useState(false)
+
+  useEffect(() => {
+    document.title = 'Inscription — ProductHunt Lite'
+  }, [])
 
 
   async function handleEmailBlur() {
@@ -117,6 +122,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              <PasswordRequirements password={password} />
             </div>
 
             <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>

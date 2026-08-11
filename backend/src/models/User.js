@@ -54,8 +54,20 @@ const userSchema = new mongoose.Schema({
   pendingPasswordHash: {
     type: String,
     default: null
+  },
+  loginAttempts: {
+    type: Number,
+    default: 0
+  },
+  lockUntil: {
+    type: Date,
+    default: null
   }
 }, { timestamps: true });
+
+// Index de performance pour les recherches et tri par date
+userSchema.index({ createdAt: -1 });
+userSchema.index({ isAdmin: 1, isSuperAdmin: 1 });
 
 const User = mongoose.model('User', userSchema);
 export default User;

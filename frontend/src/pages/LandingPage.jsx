@@ -18,6 +18,7 @@ function LandingPage() {
   const location = useLocation()
 
   useEffect(() => {
+    document.title = 'ProductHunt Lite — Découvrez et partagez les meilleurs produits tech'
     if (location.hash) {
       const el = document.querySelector(location.hash)
       if (el) {

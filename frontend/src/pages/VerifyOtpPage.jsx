@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
-import { verifyOtp, resendOtp } from '../services/auth.service'
-import { saveAuth } from '../services/auth.service'
+import { verifyOtp, resendOtp, saveAuth } from '../services/auth.service'
 import './AuthPages.css'
 
 export default function VerifyOtpPage() {
@@ -13,6 +12,10 @@ export default function VerifyOtpPage() {
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    document.title = 'Vérification de compte — ProductHunt Lite'
+  }, [])
 
   async function handleSubmit(e) {
   e.preventDefault()

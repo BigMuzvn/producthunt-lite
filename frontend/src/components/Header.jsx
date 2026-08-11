@@ -24,7 +24,7 @@ function Header() {
 
         <div className={`nav-menu ${isMenuOpen ? 'nav-menu-open' : ''}`}>
           <nav className="nav-links">
-            <Link to="/" onClick={closeMenu}>Home</Link>
+            <Link to="/" onClick={closeMenu}>Accueil</Link>
             <Link to="/products" onClick={closeMenu}>Produits</Link>
             <Link to="/categories" onClick={closeMenu}>Catégories</Link>
             <Link to="/#how-it-works" onClick={closeMenu}>Comment ça marche</Link>

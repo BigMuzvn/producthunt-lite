@@ -16,6 +16,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    document.title = 'Catégories — ProductHunt Lite'
     getCategories().then(setCategories).catch(() => {})
 
     if (getToken()) {

@@ -383,3 +383,57 @@
   height: 8px;
   border-radius: 2px;
 }
+
+/* ===== Responsive Mobile Rules ===== */
+@media (max-width: 768px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .admin-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-panels-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-row-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-row-actions button {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .admin-evolution-chart {
+    overflow-x: auto;
+    min-width: 100%;
+    gap: 6px;
+    padding: 16px 8px 6px;
+  }
+
+  .admin-evolution-bar {
+    width: 8px;
+  }
+}

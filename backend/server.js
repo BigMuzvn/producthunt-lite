@@ -1,34 +1,87 @@
 import express from 'express';
 import authRoutes from './src/routes/auth.routes.js';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import categoryRoutes from './src/routes/category.routes.js';
 import productRoutes from './src/routes/product.routes.js';
 import utilRoutes from './src/routes/util.routes.js';
 import adminRoutes from './src/routes/admin.routes.js';
-
+import commentRoutes from './src/routes/comment.routes.js';
+import errorHandler from './src/middleware/errorHandler.middleware.js';
 
 dotenv.config();
+
+// Validation des variables d'environnement requises au démarrage
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'BREVO_API_KEY', 'EMAIL_FROM'];
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+
+if (missingVars.length > 0) {
+  console.error(`❌ Erreur fatale : variables d'environnement manquantes : ${missingVars.join(', ')}`);
+  process.exit(1);
+}
+
+if (process.env.JWT_SECRET.length < 8) {
+  console.error('❌ Erreur de sécurité : JWT_SECRET doit contenir au moins 8 caractères.');
+  process.exit(1);
+}
+
 connectDB();
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:5173' }));
-app.use(express.json());
-app.use('/api/auth', authRoutes);
 
+// Sécurisation des en-têtes HTTP
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+
+// Configuration CORS dynamique via variable d'environnement (avec support multi-origines et dev localhost)
+const rawOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175';
+const allowedOrigins = rawOrigins.split(',').map(origin => origin.trim().toLowerCase());
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Autoriser les requêtes sans origine (ex: curl, requêtes serveur ou mobile)
+    if (!origin) return callback(null, true);
+
+    const originLower = origin.toLowerCase();
+    const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(originLower);
+
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(originLower) || isLocalhost) {
+      return callback(null, true);
+    }
+
+    // Refus propre sans exception non gérée
+    return callback(null, false);
+  },
+  credentials: true
+}));
+
+app.use(express.json());
+
+// Routes de base et santé
 app.get('/', (req, res) => {
   res.json({ message: 'phclone-lite API is running' });
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/utils', utilRoutes);
+app.use('/api/admin', adminRoutes);
 
+// Middleware centralisé de gestion d'erreurs (doit être le dernier middleware)
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-
-app.use('/api/utils', utilRoutes);
-
-app.use('/api/admin', adminRoutes);

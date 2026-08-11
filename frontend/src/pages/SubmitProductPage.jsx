@@ -17,6 +17,7 @@ export default function SubmitProductPage() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    document.title = isEdit ? 'Modifier mon produit — ProductHunt Lite' : 'Proposer un produit — ProductHunt Lite'
     getCategories().then(setCategories).catch(() => {})
     if (isEdit) {
       getProductById(id).then(p => {
@@ -78,39 +79,39 @@ export default function SubmitProductPage() {
             {error && <div className="auth-error">{error}</div>}
 
             <div className="form-field">
-              <label>Nom du produit</label>
-              <input name="name" value={form.name} onChange={handleChange} placeholder="Notionly" required />
+              <label htmlFor="product-name">Nom du produit</label>
+              <input id="product-name" name="name" value={form.name} onChange={handleChange} placeholder="Notionly" required />
             </div>
 
             <div className="form-field">
-              <label>Tagline</label>
-              <input name="tagline" value={form.tagline} onChange={handleChange} placeholder="Une phrase qui résume ton produit" required />
+              <label htmlFor="product-tagline">Tagline</label>
+              <input id="product-tagline" name="tagline" value={form.tagline} onChange={handleChange} placeholder="Une phrase qui résume ton produit" required />
             </div>
 
             <div className="form-field">
-              <label>Description</label>
-              <textarea name="description" value={form.description} onChange={handleChange} placeholder="Décris ton produit en détail" rows={4} required />
+              <label htmlFor="product-description">Description</label>
+              <textarea id="product-description" name="description" value={form.description} onChange={handleChange} placeholder="Décris ton produit en détail" rows={4} required />
             </div>
 
             <div className="form-row">
               <div className="form-field">
-                <label>Logo (URL)</label>
-                <input name="logoUrl" value={form.logoUrl} onChange={handleChange} placeholder="https://..." />
+                <label htmlFor="product-logo">Logo (URL)</label>
+                <input id="product-logo" name="logoUrl" value={form.logoUrl} onChange={handleChange} placeholder="https://..." />
               </div>
               <div className="form-field">
-                <label>Site web</label>
-                <input name="websiteUrl" value={form.websiteUrl} onChange={handleChange} placeholder="https://..." required />
+                <label htmlFor="product-website">Site web</label>
+                <input id="product-website" name="websiteUrl" value={form.websiteUrl} onChange={handleChange} placeholder="https://..." required />
               </div>
             </div>
 
             <div className="form-field">
-              <label>Contact / réseau social (optionnel)</label>
-              <input name="contactUrl" value={form.contactUrl} onChange={handleChange} placeholder="https://twitter.com/toncompte" />
+              <label htmlFor="product-contact">Contact / réseau social (optionnel)</label>
+              <input id="product-contact" name="contactUrl" value={form.contactUrl} onChange={handleChange} placeholder="https://twitter.com/toncompte" />
             </div>
 
             <div className="form-field">
-              <label>Catégorie</label>
-              <select name="categoryId" value={isNewCategory ? '__new__' : form.categoryId} onChange={handleChange} required>
+              <label htmlFor="product-category">Catégorie</label>
+              <select id="product-category" name="categoryId" value={isNewCategory ? '__new__' : form.categoryId} onChange={handleChange} required>
                 <option value="">Choisir une catégorie</option>
                 {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                 <option value="__new__">+ Ajouter une nouvelle catégorie</option>
@@ -119,8 +120,8 @@ export default function SubmitProductPage() {
 
             {isNewCategory && (
               <div className="form-field">
-                <label>Nom de la nouvelle catégorie</label>
-                <input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Éducation" required />
+                <label htmlFor="new-category-name">Nom de la nouvelle catégorie</label>
+                <input id="new-category-name" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Ex: Éducation" required />
               </div>
             )}
 

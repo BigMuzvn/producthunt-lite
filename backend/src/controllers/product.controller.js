@@ -1,5 +1,7 @@
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import Vote from '../models/Vote.js';
+import { sendVoteMilestoneEmail } from '../utils/sendEmail.js';
 
 export const getProducts = async (req, res) => {
   try {
@@ -14,11 +16,27 @@ export const getProducts = async (req, res) => {
       ];
     }
 
-    const products = await Product.find(filter)
+    // Options de tri : 'votes' (par défaut) ou 'recent'
+    let sortQuery = { votesCount: -1, createdAt: -1 };
+    if (req.query.sort === 'recent') {
+      sortQuery = { createdAt: -1 };
+    } else if (req.query.sort === 'name') {
+      sortQuery = { name: 1 };
+    }
+
+    let query = Product.find(filter)
       .populate('categoryId', 'name slug color')
       .populate('makerId', 'name')
-      .sort({ votesCount: -1 });
+      .sort(sortQuery);
 
+    if (req.query.limit) {
+      const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+      const skip = (page - 1) * limit;
+      query = query.skip(skip).limit(limit);
+    }
+
+    const products = await query;
     res.status(200).json(products);
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -46,13 +64,13 @@ export const getProductById = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const requester = await User.findById(req.userId);
-if (requester?.isAdmin) {
-  return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas soumettre de produits' });
-}
+    if (requester?.isAdmin || requester?.isSuperAdmin) {
+      return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas soumettre de produits' });
+    }
     const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId } = req.body;
 
     if (!name || !tagline || !description || !websiteUrl || !categoryId) {
-      return res.status(400).json({ message: 'Champs requis manquants' });
+      return res.status(400).json({ message: 'Tous les champs obligatoires doivent être remplis' });
     }
 
     const newProduct = await Product.create({
@@ -73,16 +91,24 @@ if (requester?.isAdmin) {
 };
 
 
-import Vote from '../models/Vote.js';
-
 export const voteProduct = async (req, res) => {
   try {
     const requester = await User.findById(req.userId);
-if (requester?.isAdmin) {
-  return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas voter' });
-}
+    if (requester?.isAdmin || requester?.isSuperAdmin) {
+      return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas voter' });
+    }
     const productId = req.params.id;
     const userId = req.userId;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Produit introuvable' });
+    }
+
+    // Blocage de l'auto-vote : un créateur ne peut pas voter pour son propre produit
+    if (product.makerId.toString() === userId.toString()) {
+      return res.status(403).json({ message: 'Vous ne pouvez pas voter pour votre propre produit' });
+    }
 
     const existingVote = await Vote.findOne({ userId, productId });
     if (existingVote) {
@@ -96,6 +122,16 @@ if (requester?.isAdmin) {
       { $inc: { votesCount: 1 } },
       { new: true }
     );
+
+    // Notification email au créateur si un palier de votes marquant est franchi
+    const voteMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
+    if (voteMilestones.includes(updatedProduct.votesCount)) {
+      User.findById(product.makerId).select('name email').then(maker => {
+        if (maker?.email) {
+          sendVoteMilestoneEmail(maker.email, maker.name, product.name, updatedProduct.votesCount).catch(() => {});
+        }
+      }).catch(() => {});
+    }
 
     res.status(201).json(updatedProduct);
   } catch (error) {

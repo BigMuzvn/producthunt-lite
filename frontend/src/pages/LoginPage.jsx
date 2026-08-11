@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login, saveAuth, resendOtp } from '../services/auth.service'
 import './AuthPages.css'
@@ -9,6 +9,10 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = 'Connexion — ProductHunt Lite'
+  }, [])
 
   async function handleSubmit(e) {
   e.preventDefault()

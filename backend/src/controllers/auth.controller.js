@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { sendOtpEmail, generateOtp } from '../utils/sendEmail.js';
+import { sendOtpEmail, sendNotificationEmail, generateOtp } from '../utils/sendEmail.js';
 import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
 
 export const register = async (req, res) => {
@@ -128,14 +128,39 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Email et mot de passe requis' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(401).json({ message: 'Identifiants invalides' });
     }
 
+    // Vérification du verrouillage temporaire de compte
+    if (user.lockUntil && user.lockUntil > new Date()) {
+      const remainingMinutes = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      return res.status(423).json({
+        message: `Compte temporairement verrouillé suite à trop de tentatives. Réessaie dans ${remainingMinutes} minute(s).`
+      });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      user.loginAttempts = (user.loginAttempts || 0) + 1;
+      if (user.loginAttempts >= 5) {
+        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes de blocage
+        user.loginAttempts = 0;
+        await user.save();
+        return res.status(423).json({
+          message: 'Trop de tentatives incorrectes. Ton compte est verrouillé pour 15 minutes par sécurité.'
+        });
+      }
+      await user.save();
       return res.status(401).json({ message: 'Identifiants invalides' });
+    }
+
+    // Réinitialisation des compteurs d'échec en cas de succès
+    if (user.loginAttempts > 0 || user.lockUntil) {
+      user.loginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
     }
 
     if (!user.isVerified) {
@@ -261,6 +286,35 @@ export const changePassword = async (req, res) => {
   }
 };
 
+export const changeName = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Le nom est requis' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    user.name = name.trim();
+    await user.save();
+
+    const publicUserData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isSuperAdmin: user.isSuperAdmin
+    };
+
+    res.status(200).json({ message: 'Nom mis à jour avec succès', user: publicUserData });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
 export const changeEmail = async (req, res) => {
   try {
     const { newEmail, currentPassword } = req.body;
@@ -279,15 +333,31 @@ export const changeEmail = async (req, res) => {
       return res.status(401).json({ message: 'Mot de passe incorrect' });
     }
 
-    const existingUser = await User.findOne({ email: newEmail });
-    if (existingUser) {
+    const existingUser = await User.findOne({ email: newEmail.toLowerCase().trim() });
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
     }
 
-    user.email = newEmail;
+    const oldEmail = user.email;
+    user.email = newEmail.toLowerCase().trim();
     await user.save();
 
-    res.status(200).json({ message: 'Email mis à jour avec succès', email: user.email });
+    // Notification de sécurité à l'ancienne adresse email
+    sendNotificationEmail(oldEmail, {
+      subject: 'Alerte sécurité : Ton adresse email a été modifiée — ProductHunt Lite',
+      heading: 'Modification de ton adresse email',
+      message: `L'adresse email associée à ton compte a été modifiée pour <strong>${user.email}</strong>. Si tu n'es pas à l'origine de ce changement, contacte immédiatement le support.`
+    }).catch(err => console.error('Erreur lors de la notification à l\'ancienne adresse:', err));
+
+    const publicUserData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      isSuperAdmin: user.isSuperAdmin
+    };
+
+    res.status(200).json({ message: 'Email mis à jour avec succès', user: publicUserData });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }

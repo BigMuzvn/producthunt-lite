@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { forgotPassword, resetPassword } from '../services/auth.service'
+import PasswordRequirements from '../components/PasswordRequirements'
 import './AuthPages.css'
 
 export default function ForgotPasswordPage() {
@@ -13,6 +14,10 @@ export default function ForgotPasswordPage() {
   const [info, setInfo] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = 'Mot de passe oublié — ProductHunt Lite'
+  }, [])
 
   async function handleRequestCode(e) {
     e.preventDefault()
@@ -109,6 +114,7 @@ export default function ForgotPasswordPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                 />
+                <PasswordRequirements password={newPassword} />
               </div>
 
               <div className="auth-field">

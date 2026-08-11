@@ -4,7 +4,7 @@ import Category from '../models/Category.js';
 import Vote from '../models/Vote.js';
 import bcrypt from 'bcrypt';
 import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
-import { sendOtpEmail, generateOtp } from '../utils/sendEmail.js';
+import { sendOtpEmail, sendNotificationEmail, generateOtp } from '../utils/sendEmail.js';
 
 export const getStats = async (req, res) => {
   try {
@@ -90,7 +90,7 @@ export const getStats = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
-      .select('-password -otpCode -otpExpires')
+      .select('-password -passwordHistory -pendingPasswordHash -pendingEmail -otpCode -otpExpires')
       .sort({ createdAt: -1 });
 
     const usersWithCounts = await Promise.all(
@@ -329,11 +329,21 @@ export const confirmEmailChange = async (req, res) => {
       return res.status(400).json({ message: 'Ce code a expiré, recommence la demande' });
     }
 
-    user.email = user.pendingEmail;
+    const oldEmail = user.email;
+    const newEmail = user.pendingEmail;
+
+    user.email = newEmail;
     user.pendingEmail = null;
     user.otpCode = null;
     user.otpExpires = null;
     await user.save();
+
+    // Notification de sécurité à l'ancienne adresse email
+    sendNotificationEmail(oldEmail, {
+      subject: 'Alerte sécurité : Ton adresse email a été modifiée — ProductHunt Lite',
+      heading: 'Modification de ton adresse email',
+      message: `L'adresse email associée à ton compte administrateur a été modifiée pour <strong>${newEmail}</strong>. Si tu n'es pas à l'origine de ce changement, contacte immédiatement le support.`
+    }).catch(err => console.error('Erreur lors de la notification à l\'ancienne adresse:', err));
 
     res.status(200).json({ message: 'Email mis à jour avec succès', user: publicUser(user) });
   } catch (error) {

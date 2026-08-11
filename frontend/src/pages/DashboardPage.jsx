@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
+    document.title = 'Mon Dashboard — ProductHunt Lite'
     getMyProducts().then(setProducts).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
