@@ -9,6 +9,13 @@ import {
   adminDeleteProduct,
   adminDeleteCategory,
   createAdmin,
+  updateOwnName,
+  requestEmailChangeOtp,
+  confirmEmailChange,
+  requestPasswordChangeOtp,
+  confirmPasswordChange,
+  updateOtherAdmin,
+  resetOtherAdminPassword,
 } from '../controllers/admin.controller.js';
 
 
@@ -23,5 +30,16 @@ router.put('/users/:id/toggle-admin', toggleAdmin);
 router.delete('/products/:id', adminDeleteProduct);
 router.delete('/categories/:id', adminDeleteCategory);
 router.post('/create-admin', createAdmin);
+
+// Profil de l'admin connecté
+router.put('/profile/name', updateOwnName);
+router.post('/profile/email/request-otp', requestEmailChangeOtp);
+router.post('/profile/email/confirm', confirmEmailChange);
+router.post('/profile/password/request-otp', requestPasswordChangeOtp);
+router.post('/profile/password/confirm', confirmPasswordChange);
+
+// Gestion des autres admins (super admin uniquement, vérifié dans le controller)
+router.put('/admins/:id', updateOtherAdmin);
+router.put('/admins/:id/password', resetOtherAdminPassword);
 
 export default router;

@@ -5,10 +5,10 @@ export function getCategories() {
 }
 
 
-export function createCategory(name) {
+export function createCategory(name, color) {
   return apiFetch('/categories', {
     method: 'POST',
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name, color })
   });
 }

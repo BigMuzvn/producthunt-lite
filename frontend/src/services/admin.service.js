@@ -35,3 +35,63 @@ export function createAdmin(name, email, password) {
     body: JSON.stringify({ name, email, password })
   });
 }
+
+// ─── Profil de l'admin connecté ─────────────────────────────────────────
+
+export function updateOwnName(name) {
+  return apiFetch('/admin/profile/name', {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ name })
+  });
+}
+
+export function requestEmailChangeOtp(newEmail, currentPassword) {
+  return apiFetch('/admin/profile/email/request-otp', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ newEmail, currentPassword })
+  });
+}
+
+export function confirmEmailChange(otpCode) {
+  return apiFetch('/admin/profile/email/confirm', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ otpCode })
+  });
+}
+
+export function requestPasswordChangeOtp(currentPassword, newPassword) {
+  return apiFetch('/admin/profile/password/request-otp', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+}
+
+export function confirmPasswordChange(otpCode) {
+  return apiFetch('/admin/profile/password/confirm', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ otpCode })
+  });
+}
+
+// ─── Gestion des autres admins (super admin) ────────────────────────────
+
+export function updateOtherAdmin(id, data) {
+  return apiFetch(`/admin/admins/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify(data)
+  });
+}
+
+export function resetOtherAdminPassword(id, newPassword) {
+  return apiFetch(`/admin/admins/${id}/password`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: JSON.stringify({ newPassword })
+  });
+}

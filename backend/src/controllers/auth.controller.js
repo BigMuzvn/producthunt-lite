@@ -1,11 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { sendOtpEmail } from '../utils/sendEmail.js';
-
-function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
+import { sendOtpEmail, generateOtp } from '../utils/sendEmail.js';
+import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
 
 export const register = async (req, res) => {
   try {
@@ -18,6 +15,11 @@ export const register = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
+    }
+
+    const complexityCheck = validatePasswordComplexity(password);
+    if (!complexityCheck.valid) {
+      return res.status(400).json({ message: complexityCheck.message });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -199,8 +201,18 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Ce code a expiré, demande-en un nouveau' });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    const complexityCheck = validatePasswordComplexity(newPassword);
+    if (!complexityCheck.valid) {
+      return res.status(400).json({ message: complexityCheck.message });
+    }
+
+    const reuseCheck = await checkPasswordReuse(newPassword, user, bcrypt);
+    if (reuseCheck.reused) {
+      return res.status(400).json({ message: reuseCheck.message });
+    }
+
+    user.passwordHistory = pushToPasswordHistory(user);
+    user.password = await bcrypt.hash(newPassword, 10);
     user.otpCode = null;
     user.otpExpires = null;
     await user.save();
@@ -229,6 +241,17 @@ export const changePassword = async (req, res) => {
       return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
     }
 
+    const complexityCheck = validatePasswordComplexity(newPassword);
+    if (!complexityCheck.valid) {
+      return res.status(400).json({ message: complexityCheck.message });
+    }
+
+    const reuseCheck = await checkPasswordReuse(newPassword, user, bcrypt);
+    if (reuseCheck.reused) {
+      return res.status(400).json({ message: reuseCheck.message });
+    }
+
+    user.passwordHistory = pushToPasswordHistory(user);
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 

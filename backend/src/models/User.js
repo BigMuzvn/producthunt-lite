@@ -17,6 +17,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  passwordHistory: {
+    type: [String],
+    default: []
+  },
   avatarUrl: {
     type: String,
     default: ''
@@ -38,6 +42,17 @@ const userSchema = new mongoose.Schema({
   },
   otpExpires: {
     type: Date,
+    default: null
+  },
+  // Utilisés uniquement pour le flux "changement d'email/mdp avec OTP" du profil admin.
+  // On ne modifie jamais email/password directement : on stocke la valeur en attente ici,
+  // et on ne l'applique qu'une fois l'OTP confirmé (voir admin.controller.js).
+  pendingEmail: {
+    type: String,
+    default: null
+  },
+  pendingPasswordHash: {
+    type: String,
     default: null
   }
 }, { timestamps: true });
