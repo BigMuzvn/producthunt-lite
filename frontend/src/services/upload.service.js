@@ -11,7 +11,8 @@ export function uploadImage(base64Data) {
 export function getImageUrl(url) {
   if (!url) return '';
   if (url.startsWith('/uploads')) {
-    return `http://localhost:5000${url}`;
+    const backendHost = import.meta.env.PROD ? 'https://producthunt-lite.onrender.com' : 'http://localhost:5000';
+    return `${backendHost}${url}`;
   }
   return url;
 }
