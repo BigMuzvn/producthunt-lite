@@ -78,14 +78,30 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Routes API avec support du préfixe /api et des accès directs
 app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/api/categories', categoryRoutes);
+app.use('/categories', categoryRoutes);
+
 app.use('/api/products', productRoutes);
+app.use('/products', productRoutes);
+
 app.use('/api/comments', commentRoutes);
+app.use('/comments', commentRoutes);
+
 app.use('/api/notifications', notificationRoutes);
+app.use('/notifications', notificationRoutes);
+
 app.use('/api/upload', uploadRoutes);
+app.use('/upload', uploadRoutes);
+
 app.use('/api/utils', utilRoutes);
+app.use('/utils', utilRoutes);
+
 app.use('/api/admin', adminRoutes);
+app.use('/admin', adminRoutes);
 
 // Middleware centralisé de gestion d'erreurs (doit être le dernier middleware)
 app.use(errorHandler);

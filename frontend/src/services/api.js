@@ -1,8 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://producthunt-lite.onrender.com/api' : 'http://localhost:5000/api');
+let baseApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://producthunt-lite.onrender.com/api' : 'http://localhost:5000/api');
 
 export async function apiFetch(endpoint, options = {}) {
   try {
-    const cleanUrl = `${API_URL.replace(/\/$/, '')}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}`;
+    const cleanBase = baseApiUrl.replace(/\/$/, '');
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+    const cleanUrl = `${cleanBase}${cleanEndpoint}`;
+
     const response = await fetch(cleanUrl, {
       ...options,
       headers: {
