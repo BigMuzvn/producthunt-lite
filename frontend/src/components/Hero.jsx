@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthGate } from '../hooks/useAuthGate'
 import AuthPromptModal from './AuthPromptModal'
+import heroImg from '../assets/hero.png'
 
 function Hero() {
   const navigate = useNavigate()
@@ -105,7 +106,7 @@ function Hero() {
           <div className="stage-halo"></div>
 
           <div className="stage-image-container floating-3d">
-            <img src="/src/assets/hero-3d.png" alt="3D Tech Launch Platform" className="hero-3d-visual" />
+            <img src={heroImg} alt="3D Tech Launch Platform" className="hero-3d-visual" />
           </div>
 
           {/* Badge Flottant 1 (Trophée SVG) */}
