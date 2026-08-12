@@ -25,6 +25,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  bio: {
+    type: String,
+    default: ''
+  },
+  githubUrl: {
+    type: String,
+    default: ''
+  },
+  twitterUrl: {
+    type: String,
+    default: ''
+  },
+  portfolioUrl: {
+    type: String,
+    default: ''
+  },
+  bookmarks: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }],
   isVerified: {
     type: Boolean,
     default: false

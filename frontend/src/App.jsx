@@ -7,6 +7,9 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import ProductsPage from './pages/ProductsPage'
 import CategoriesPage from './pages/CategoriesPage'
 import SubmitProductPage from './pages/SubmitProductPage'
+import ContactPage from './pages/ContactPage'
+import AboutPage from './pages/AboutPage'
+import MakerProfilePage from './pages/MakerProfilePage'
 import ProtectedRoute from './components/ProtectedRoute'
 import VerifyOtpPage from './pages/VerifyOtpPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -23,6 +26,10 @@ function App() {
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/apropos" element={<AboutPage />} />
+        <Route path="/maker/:id" element={<MakerProfilePage />} />
         <Route
           path="/dashboard"
           element={

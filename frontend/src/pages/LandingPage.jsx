@@ -2,16 +2,15 @@ import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import Header from '../components/Header'
 import Hero from '../components/Hero'
+import DashboardShowcase from '../components/DashboardShowcase'
 import TrustBanner from '../components/TrustBanner'
-import StoreRatings from '../components/StoreRatings'
 import StatsSection from '../components/StatsSection'
 import TopProducts from '../components/TopProducts'
 import Categories from '../components/Categories'
 import Testimonials from '../components/Testimonials'
 import HowItWorks from '../components/HowItWorks'
 import FAQ from '../components/FAQ'
-import ExploreCTA from '../components/ExploreCTA'
-import Newsletter from '../components/Newsletter'
+import FinalCTA from '../components/FinalCTA'
 import Footer from '../components/Footer'
 
 function LandingPage() {
@@ -33,16 +32,15 @@ function LandingPage() {
     <div className="app-shell">
       <Header />
       <Hero />
+      <DashboardShowcase />
       <TrustBanner />
-      <StoreRatings />
       <StatsSection />
       <TopProducts />
       <Categories />
       <Testimonials />
       <HowItWorks />
       <FAQ />
-      <ExploreCTA />
-      <Newsletter />
+      <FinalCTA />
       <Footer />
     </div>
   )

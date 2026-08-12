@@ -1,80 +1,187 @@
 .product-detail-page {
-  padding: 48px 0 80px;
+  min-height: 80vh;
+  padding: 48px 0 100px;
 }
 
 .detail-back-link {
-  display: inline-block;
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--text-secondary);
   text-decoration: none;
-  font-size: 14px;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
+  transition: color 0.15s ease;
 }
 
 .detail-back-link:hover {
-  color: var(--dark);
+  color: #FFFFFF;
 }
 
 .detail-header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 24px;
+  background: rgba(13, 19, 33, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
 }
 
 .detail-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
   object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .detail-header h1 {
   font-family: var(--font-display);
-  font-size: 28px;
-  color: var(--dark);
+  font-size: clamp(24px, 3.5vw, 34px);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .detail-tagline {
-  font-size: 15px;
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.detail-maker-byline {
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin: 8px 0 0;
 }
 
 .detail-votes {
-  margin-left: auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 16px;
+  flex-shrink: 0;
 }
 
-.detail-meta {
+/* Galerie & Carrousel Captures d'écran */
+.detail-gallery-section {
+  margin-bottom: 36px;
+}
+
+.gallery-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 14px;
+}
+
+.detail-gallery-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+}
+
+.gallery-thumb-wrapper {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.gallery-thumb-wrapper:hover {
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.gallery-thumb {
+  width: 280px;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-expand-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+/* Modal Lightbox Plein Écran */
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  justify-content: center;
 }
 
-.detail-maker {
-  font-size: 13px;
-  color: var(--text-muted);
+.lightbox-img {
+  max-width: 100%;
+  max-height: 85vh;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  background: #0B101E;
+}
+
+/* Boîte de contenu */
+.detail-content-box {
+  background: rgba(13, 19, 33, 0.75);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 .detail-description {
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--dark);
-  max-width: 640px;
-  margin-bottom: 32px;
+  font-size: 15.5px;
+  color: #CBD5E1;
+  line-height: 1.7;
+  white-space: pre-line;
 }
 
 .detail-status {
   text-align: center;
-  padding: 80px 0;
+  padding: 100px 0;
+  font-size: 16px;
   color: var(--text-muted);
 }
 
-@media (max-width: 560px) {
+@media (max-width: 768px) {
   .detail-header {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
   }
   .detail-votes {
-    margin-left: 0;
+    align-self: flex-start;
   }
 }

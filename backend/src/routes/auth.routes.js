@@ -1,5 +1,9 @@
 import express from 'express';
-import { register, login, verifyOtp, resendOtp, forgotPassword, resetPassword, changePassword, changeName, changeEmail, deleteAccount } from '../controllers/auth.controller.js';
+import {
+  register, login, verifyOtp, resendOtp, forgotPassword, resetPassword,
+  changePassword, changeName, changeEmail, deleteAccount,
+  updateProfile, getMakerProfile, toggleBookmark, getBookmarks
+} from '../controllers/auth.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { authLimiter, otpRequestLimiter, otpVerifyLimiter } from '../middleware/rateLimiter.middleware.js';
 
@@ -15,5 +19,10 @@ router.put('/change-name', protect, changeName);
 router.put('/change-password', protect, changePassword);
 router.put('/change-email', protect, changeEmail);
 router.delete('/delete-account', protect, deleteAccount);
+
+router.put('/profile', protect, updateProfile);
+router.get('/maker/:id', getMakerProfile);
+router.post('/bookmarks/:productId', protect, toggleBookmark);
+router.get('/bookmarks', protect, getBookmarks);
 
 export default router;

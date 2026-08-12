@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import Footer from '../components/Footer'
 import {
   getStats, getAllUsers, deleteUser, toggleAdmin, createAdmin,
   adminDeleteProduct, adminDeleteCategory,
@@ -288,12 +289,46 @@ export default function AdminPage() {
           </div>
 
           <div className="admin-tabs">
-            <button className={tab === 'overview' ? 'active' : ''} onClick={() => { setTab('overview'); resetAdminFeedback() }}>Vue d'ensemble</button>
-            <button className={tab === 'users' ? 'active' : ''} onClick={() => { setTab('users'); resetAdminFeedback() }}>Clients ({(users || []).filter(u => !u.isAdmin && !u.isSuperAdmin).length})</button>
-            <button className={tab === 'products' ? 'active' : ''} onClick={() => { setTab('products'); resetAdminFeedback() }}>Produits ({(products || []).length})</button>
-            <button className={tab === 'categories' ? 'active' : ''} onClick={() => { setTab('categories'); resetAdminFeedback() }}>Catégories ({(categories || []).length})</button>
+            <button className={tab === 'overview' ? 'active' : ''} onClick={() => { setTab('overview'); resetAdminFeedback() }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="14" y="12" rx="1" />
+                <rect width="7" height="5" x="3" y="16" rx="1" />
+              </svg>
+              <span>Vue d'ensemble</span>
+            </button>
+
+            <button className={tab === 'users' ? 'active' : ''} onClick={() => { setTab('users'); resetAdminFeedback() }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg>
+              <span>Clients ({(users || []).filter(u => !u.isAdmin && !u.isSuperAdmin).length})</span>
+            </button>
+
+            <button className={tab === 'products' ? 'active' : ''} onClick={() => { setTab('products'); resetAdminFeedback() }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+              </svg>
+              <span>Produits ({(products || []).length})</span>
+            </button>
+
+            <button className={tab === 'categories' ? 'active' : ''} onClick={() => { setTab('categories'); resetAdminFeedback() }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+              </svg>
+              <span>Catégories ({(categories || []).length})</span>
+            </button>
+
             {currentUser?.isSuperAdmin && (
-              <button className={tab === 'admins' ? 'active' : ''} onClick={() => { setTab('admins'); resetAdminFeedback() }}>Gestion Admin</button>
+              <button className={tab === 'admins' ? 'active' : ''} onClick={() => { setTab('admins'); resetAdminFeedback() }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span>Gestion Admin</span>
+              </button>
             )}
           </div>
 
@@ -395,6 +430,7 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+      <Footer />
     </>
   )
 }

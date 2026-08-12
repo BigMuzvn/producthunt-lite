@@ -58,7 +58,12 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+import path from 'path';
+import notificationRoutes from './src/routes/notification.routes.js';
+import uploadRoutes from './src/routes/upload.routes.js';
+
+app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 // Routes de base et santé
 app.get('/', (req, res) => {
@@ -77,6 +82,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/upload', uploadRoutes);
 app.use('/api/utils', utilRoutes);
 app.use('/api/admin', adminRoutes);
 

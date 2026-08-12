@@ -40,10 +40,18 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  images: [{
+    type: String
+  }],
   contactUrl: {
-  type: String,
-  default: ''
-},
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    enum: ['LIVE', 'BETA', 'OPEN_SOURCE'],
+    default: 'LIVE'
+  },
 }, { timestamps: true });
 
 // Index de performance pour les filtres et tris fréquents

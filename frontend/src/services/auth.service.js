@@ -92,3 +92,28 @@ export function deleteAccount(currentPassword) {
     body: JSON.stringify({ currentPassword })
   });
 }
+
+export function updateProfile(profileData) {
+  return apiFetch('/auth/profile', {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    body: JSON.stringify(profileData)
+  });
+}
+
+export function getMakerProfile(id) {
+  return apiFetch(`/auth/maker/${id}`);
+}
+
+export function toggleBookmark(productId) {
+  return apiFetch(`/auth/bookmarks/${productId}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+  });
+}
+
+export function getBookmarks() {
+  return apiFetch('/auth/bookmarks', {
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+  });
+}

@@ -2,6 +2,7 @@ import Product from '../models/Product.js';
 import User from '../models/User.js';
 import Vote from '../models/Vote.js';
 import { sendVoteMilestoneEmail } from '../utils/sendEmail.js';
+import { sendNotification } from './notification.controller.js';
 
 export const getProducts = async (req, res) => {
   try {
@@ -9,14 +10,14 @@ export const getProducts = async (req, res) => {
     if (req.query.categoryId) {
       filter.categoryId = req.query.categoryId;
     }
-    if (req.query.search) {
+    if (req.query.search && req.query.search.trim()) {
+      const safeSearch = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filter.$or = [
-        { name: { $regex: req.query.search, $options: 'i' } },
-        { tagline: { $regex: req.query.search, $options: 'i' } }
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { tagline: { $regex: safeSearch, $options: 'i' } }
       ];
     }
 
-    // Options de tri : 'votes' (par défaut) ou 'recent'
     let sortQuery = { votesCount: -1, createdAt: -1 };
     if (req.query.sort === 'recent') {
       sortQuery = { createdAt: -1 };
@@ -26,7 +27,7 @@ export const getProducts = async (req, res) => {
 
     let query = Product.find(filter)
       .populate('categoryId', 'name slug color')
-      .populate('makerId', 'name')
+      .populate('makerId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl')
       .sort(sortQuery);
 
     if (req.query.limit) {
@@ -47,7 +48,7 @@ export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate('categoryId', 'name slug color')
-      .populate('makerId', 'name');
+      .populate('makerId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl');
 
     if (!product) {
       return res.status(404).json({ message: 'Produit introuvable' });
@@ -59,15 +60,13 @@ export const getProductById = async (req, res) => {
   }
 };
 
-
-
 export const createProduct = async (req, res) => {
   try {
     const requester = await User.findById(req.userId);
     if (requester?.isAdmin || requester?.isSuperAdmin) {
       return res.status(403).json({ message: 'Les comptes administrateurs ne peuvent pas soumettre de produits' });
     }
-    const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId } = req.body;
+    const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId, images, status } = req.body;
 
     if (!name || !tagline || !description || !websiteUrl || !categoryId) {
       return res.status(400).json({ message: 'Tous les champs obligatoires doivent être remplis' });
@@ -81,6 +80,8 @@ export const createProduct = async (req, res) => {
       websiteUrl,
       contactUrl: contactUrl || '',
       categoryId,
+      images: Array.isArray(images) ? images : [],
+      status: ['LIVE', 'BETA', 'OPEN_SOURCE'].includes(status) ? status : 'LIVE',
       makerId: req.userId
     });
 
@@ -89,7 +90,6 @@ export const createProduct = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
 };
-
 
 export const voteProduct = async (req, res) => {
   try {
@@ -105,7 +105,6 @@ export const voteProduct = async (req, res) => {
       return res.status(404).json({ message: 'Produit introuvable' });
     }
 
-    // Blocage de l'auto-vote : un créateur ne peut pas voter pour son propre produit
     if (product.makerId.toString() === userId.toString()) {
       return res.status(403).json({ message: 'Vous ne pouvez pas voter pour votre propre produit' });
     }
@@ -123,7 +122,15 @@ export const voteProduct = async (req, res) => {
       { new: true }
     );
 
-    // Notification email au créateur si un palier de votes marquant est franchi
+    // Envoyer la notification in-app au créateur
+    sendNotification({
+      recipientId: product.makerId,
+      senderId: userId,
+      productId: product._id,
+      type: 'VOTE',
+      message: `${requester?.name || 'Un utilisateur'} a voté pour votre produit "${product.name}" !`
+    });
+
     const voteMilestones = [5, 10, 25, 50, 100, 250, 500, 1000];
     if (voteMilestones.includes(updatedProduct.votesCount)) {
       User.findById(product.makerId).select('name email').then(maker => {
@@ -163,8 +170,12 @@ export const updateProduct = async (req, res) => {
       return res.status(403).json({ message: 'Non autorisé' });
     }
 
-    const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId } = req.body;
-    Object.assign(product, { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId });
+    const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId, images, status } = req.body;
+    Object.assign(product, {
+      name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId,
+      images: Array.isArray(images) ? images : product.images,
+      status: ['LIVE', 'BETA', 'OPEN_SOURCE'].includes(status) ? status : product.status
+    });
     await product.save();
 
     res.status(200).json(product);

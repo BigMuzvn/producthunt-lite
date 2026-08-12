@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import Product from '../models/Product.js';
 import { sendOtpEmail, sendNotificationEmail, generateOtp } from '../utils/sendEmail.js';
 import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
 
@@ -84,9 +85,21 @@ export const verifyOtp = async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
-  token,
-  user: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin, isSuperAdmin: user.isSuperAdmin }
-});
+      token,
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio || '',
+        avatarUrl: user.avatarUrl || '',
+        githubUrl: user.githubUrl || '',
+        twitterUrl: user.twitterUrl || '',
+        portfolioUrl: user.portfolioUrl || '',
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }
@@ -171,7 +184,19 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin, isSuperAdmin: user.isSuperAdmin }
+      user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        bio: user.bio || '',
+        avatarUrl: user.avatarUrl || '',
+        githubUrl: user.githubUrl || '',
+        twitterUrl: user.twitterUrl || '',
+        portfolioUrl: user.portfolioUrl || '',
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
@@ -384,6 +409,135 @@ export const deleteAccount = async (req, res) => {
     await user.deleteOne();
 
     res.status(200).json({ message: 'Compte supprimé avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, bio, avatarUrl, githubUrl, twitterUrl, portfolioUrl } = req.body;
+    const userId = req.userId || req.user?._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    if (name) user.name = name.trim();
+    if (bio !== undefined) user.bio = bio;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
+    if (githubUrl !== undefined) user.githubUrl = githubUrl;
+    if (twitterUrl !== undefined) user.twitterUrl = twitterUrl;
+    if (portfolioUrl !== undefined) user.portfolioUrl = portfolioUrl;
+
+    await user.save();
+
+    const publicUserData = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      bio: user.bio,
+      avatarUrl: user.avatarUrl,
+      githubUrl: user.githubUrl,
+      twitterUrl: user.twitterUrl,
+      portfolioUrl: user.portfolioUrl,
+      isAdmin: user.isAdmin,
+      isSuperAdmin: user.isSuperAdmin,
+      bookmarks: user.bookmarks
+    };
+
+    res.status(200).json({ message: 'Profil mis à jour avec succès', user: publicUserData });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const getMakerProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const maker = await User.findById(id).select('-password -passwordHistory -otpCode -otpExpires');
+    if (!maker) {
+      return res.status(404).json({ message: 'Maker introuvable' });
+    }
+
+    const products = await Product.find({ makerId: id })
+      .populate('categoryId', 'name color')
+      .sort({ createdAt: -1 });
+
+    const totalVotes = products.reduce((acc, p) => acc + (p.votesCount || 0), 0);
+
+    res.status(200).json({
+      maker: {
+        _id: maker._id,
+        name: maker.name,
+        email: maker.email,
+        bio: maker.bio || '',
+        avatarUrl: maker.avatarUrl || '',
+        githubUrl: maker.githubUrl || '',
+        twitterUrl: maker.twitterUrl || '',
+        portfolioUrl: maker.portfolioUrl || '',
+        createdAt: maker.createdAt
+      },
+      products,
+      stats: {
+        totalProducts: products.length,
+        totalVotes
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const toggleBookmark = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.userId || req.user?._id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    const index = user.bookmarks.indexOf(productId);
+    let isBookmarked = false;
+
+    if (index > -1) {
+      user.bookmarks.splice(index, 1);
+    } else {
+      user.bookmarks.push(productId);
+      isBookmarked = true;
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: isBookmarked ? 'Produit ajouté à vos favoris' : 'Produit retiré de vos favoris',
+      isBookmarked,
+      bookmarks: user.bookmarks
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+export const getBookmarks = async (req, res) => {
+  try {
+    const userId = req.userId || req.user?._id;
+    const user = await User.findById(userId).populate({
+      path: 'bookmarks',
+      populate: [
+        { path: 'categoryId', select: 'name color' },
+        { path: 'makerId', select: 'name avatarUrl' }
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    res.status(200).json({ bookmarks: user.bookmarks || [] });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });
   }

@@ -9,6 +9,10 @@
 node_modules/
 */node_modules/
 
+# Uploads & User Media
+backend/public/uploads/*
+!backend/public/uploads/.gitkeep
+
 # Production builds
 dist/
 dist-ssr/

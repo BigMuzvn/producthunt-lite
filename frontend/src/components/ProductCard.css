@@ -1,0 +1,342 @@
+.product-card {
+  position: relative;
+  background: rgba(13, 19, 33, 0.75);
+  backdrop-filter: blur(16px);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 24px rgba(99, 102, 241, 0.12);
+}
+
+/* Badges Podium Top 3 High-End Metallic Pill Design */
+.product-card.rank-gold-card {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(245, 158, 11, 0.06);
+}
+
+.product-card.rank-silver-card {
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(148, 163, 184, 0.04);
+}
+
+.product-card.rank-bronze-card {
+  border-color: rgba(217, 119, 6, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(217, 119, 6, 0.04);
+}
+
+.podium-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 12px 4px 14px;
+  border-bottom-left-radius: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  backdrop-filter: blur(12px);
+}
+
+.podium-ribbon.rank-1 {
+  background: rgba(245, 158, 11, 0.15);
+  border-left: 1px solid rgba(245, 158, 11, 0.4);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.4);
+  color: #FBBF24;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+}
+
+.podium-ribbon.rank-2 {
+  background: rgba(148, 163, 184, 0.15);
+  border-left: 1px solid rgba(148, 163, 184, 0.35);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+  color: #E2E8F0;
+  box-shadow: 0 4px 14px rgba(148, 163, 184, 0.15);
+}
+
+.podium-ribbon.rank-3 {
+  background: rgba(217, 119, 6, 0.15);
+  border-left: 1px solid rgba(217, 119, 6, 0.35);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.35);
+  color: #FB923C;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.15);
+}
+
+.product-body {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.product-logo {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  max-width: 54px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.product-header-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.product-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.product-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2px 9px;
+  border-radius: 9999px;
+}
+
+.product-category-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Statut du produit (Live / Beta / Open Source) */
+.product-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.product-status-pill.status-live {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34D399;
+}
+
+.product-status-pill.status-live .status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34D399;
+  box-shadow: 0 0 6px #34D399;
+}
+
+.product-status-pill.status-beta {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #FBBF24;
+}
+
+.product-status-pill.status-beta .status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #FBBF24;
+}
+
+.product-status-pill.status-open_source {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38BDF8;
+}
+
+.product-status-pill.status-open_source .status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #38BDF8;
+}
+
+/* Badge Lancement récents (<48h) */
+.recent-launch-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #A5B4FC;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.product-tagline {
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-maker-byline {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.maker-link {
+  color: #38BDF8;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.maker-link:hover {
+  color: #7DD3FC;
+  text-decoration: underline;
+}
+
+.maker-link-disabled {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.product-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.product-bookmark-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #94A3B8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.product-bookmark-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F59E0B;
+}
+
+.product-bookmark-btn.bookmarked {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #FBBF24;
+}
+
+.product-comment-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 14px;
+  color: #94A3B8;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.product-comment-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.votes-badge {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 12px;
+  padding: 8px 16px;
+  color: #818CF8;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.votes-badge:hover {
+  background: rgba(99, 102, 241, 0.22);
+  color: #FFFFFF;
+}
+
+.votes-badge.voted {
+  background: linear-gradient(135deg, #6366F1, #4F46E5);
+  border-color: #6366F1;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+@keyframes votePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.vote-pop {
+  animation: votePop 0.4s ease;
+}
+
+@media (max-width: 640px) {
+  .product-card {
+    padding: 16px 18px;
+    flex-wrap: wrap;
+  }
+  .product-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .podium-ribbon {
+    font-size: 9px;
+    padding: 2px 10px;
+  }
+}

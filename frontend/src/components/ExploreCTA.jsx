@@ -1,6 +1,9 @@
+import { useNavigate } from 'react-router-dom'
+
 function ExploreCTA() {
+  const navigate = useNavigate()
   function handleExploreClick() {
-    console.log('Redirection vers la page de connexion...')
+    navigate('/products')
   }
 
   return (

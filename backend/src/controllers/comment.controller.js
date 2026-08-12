@@ -2,14 +2,15 @@ import Comment from '../models/Comment.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
 import { sendNewCommentEmail } from '../utils/sendEmail.js';
+import { sendNotification } from './notification.controller.js';
 
 export const getProductComments = async (req, res) => {
   try {
     const { productId } = req.params;
 
     const comments = await Comment.find({ productId })
-      .populate('userId', 'name avatarUrl')
-      .sort({ createdAt: -1 });
+      .populate('userId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl')
+      .sort({ createdAt: 1 });
 
     res.status(200).json(comments);
   } catch (error) {
@@ -20,7 +21,7 @@ export const getProductComments = async (req, res) => {
 export const createComment = async (req, res) => {
   try {
     const { productId } = req.params;
-    const { content } = req.body;
+    const { content, parentId } = req.body;
     const userId = req.userId;
 
     if (!content || !content.trim()) {
@@ -41,22 +42,44 @@ export const createComment = async (req, res) => {
     const comment = await Comment.create({
       productId,
       userId,
-      content: content.trim()
+      content: content.trim(),
+      parentId: parentId || null
     });
 
-    const populatedComment = await Comment.findById(comment._id).populate('userId', 'name avatarUrl');
+    const populatedComment = await Comment.findById(comment._id).populate('userId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl');
 
-    // Notification email au créateur si le commentateur n'est pas le créateur lui-même
-    if (product.makerId && product.makerId.email && product.makerId._id.toString() !== userId.toString()) {
-      const excerpt = content.trim().length > 150 ? `${content.trim().slice(0, 150)}...` : content.trim();
-      sendNewCommentEmail(
-        product.makerId.email,
-        product.makerId.name,
-        product.name,
-        commenter?.name || 'Un membre',
-        excerpt,
-        productId
-      ).catch(() => {});
+    // Notification in-app & email au créateur du produit ou à l'auteur du commentaire d'origine
+    if (parentId) {
+      const parentComment = await Comment.findById(parentId);
+      if (parentComment && parentComment.userId.toString() !== userId.toString()) {
+        sendNotification({
+          recipientId: parentComment.userId,
+          senderId: userId,
+          productId: product._id,
+          type: 'REPLY',
+          message: `${commenter?.name || 'Un membre'} a répondu à votre commentaire sur "${product.name}".`
+        });
+      }
+    } else if (product.makerId && product.makerId._id.toString() !== userId.toString()) {
+      sendNotification({
+        recipientId: product.makerId._id,
+        senderId: userId,
+        productId: product._id,
+        type: 'COMMENT',
+        message: `${commenter?.name || 'Un membre'} a commenté votre produit "${product.name}".`
+      });
+
+      if (product.makerId.email) {
+        const excerpt = content.trim().length > 150 ? `${content.trim().slice(0, 150)}...` : content.trim();
+        sendNewCommentEmail(
+          product.makerId.email,
+          product.makerId.name,
+          product.name,
+          commenter?.name || 'Un membre',
+          excerpt,
+          productId
+        ).catch(() => {});
+      }
     }
 
     res.status(201).json(populatedComment);
