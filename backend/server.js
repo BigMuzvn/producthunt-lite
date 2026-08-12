@@ -36,23 +36,23 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// Configuration CORS dynamique via variable d'environnement (avec support multi-origines et dev localhost)
-const rawOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173,http://127.0.0.1:5174,http://127.0.0.1:5175';
+// Configuration CORS dynamique (compatible multi-origines, Vercel, localhost et credentials: true)
+const rawOrigins = process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://127.0.0.1:5173';
 const allowedOrigins = rawOrigins.split(',').map(origin => origin.trim().toLowerCase());
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Autoriser les requêtes sans origine (ex: curl, requêtes serveur ou mobile)
+    // Autoriser les requêtes sans origine (ex: curl, mobile, serveur)
     if (!origin) return callback(null, true);
 
     const originLower = origin.toLowerCase();
     const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(originLower);
+    const isVercelDomain = originLower.endsWith('.vercel.app');
 
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(originLower) || isLocalhost) {
-      return callback(null, true);
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(originLower) || isLocalhost || isVercelDomain) {
+      return callback(null, origin);
     }
 
-    // Refus propre sans exception non gérée
     return callback(null, false);
   },
   credentials: true
