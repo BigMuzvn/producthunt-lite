@@ -2827,20 +2827,32 @@ html, body {
 /* ===== 2. HERO SECTION MOBILE CENTERING & RESPONSIVENESS ===== */
 @media (max-width: 960px) {
   .hero-section-3d {
-    padding: 44px 0 60px !important;
+    padding: 40px 0 54px !important;
   }
 
   .hero-grid {
-    grid-template-columns: 1fr !important;
-    gap: 36px !important;
-    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
   }
 
   .hero-content {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+    justify-content: center !important;
     text-align: center !important;
+    width: 100% !important;
+    max-width: 580px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .hero-pill-badge {
@@ -2849,13 +2861,17 @@ html, body {
     margin-bottom: 20px !important;
     font-size: 12.5px !important;
     padding: 6px 16px !important;
+    text-align: center !important;
   }
 
   .hero-headline {
-    font-size: 38px !important;
-    line-height: 1.16 !important;
+    font-size: 36px !important;
+    line-height: 1.18 !important;
     text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     margin-bottom: 18px !important;
+    width: 100% !important;
   }
 
   .hero-description {
@@ -2865,7 +2881,8 @@ html, body {
     margin-left: auto !important;
     margin-right: auto !important;
     max-width: 500px !important;
-    margin-bottom: 28px !important;
+    margin-bottom: 26px !important;
+    width: 100% !important;
   }
 
   .hero-actions {
@@ -2873,24 +2890,34 @@ html, body {
     justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
+    max-width: 440px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     gap: 12px !important;
   }
 
   .hero-search-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     width: 100% !important;
     max-width: 440px !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 24px !important;
+    margin-top: 22px !important;
     padding: 6px 6px 6px 14px !important;
     border-radius: 12px !important;
+    box-sizing: border-box !important;
   }
 
   .hero-social-proof {
+    display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
+    width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    margin-top: 24px !important;
+    margin-top: 22px !important;
   }
 
   .hero-stage-wrapper {
@@ -2907,10 +2934,11 @@ html, body {
   }
 
   .hero-3d-visual {
-    max-width: 320px !important;
+    max-width: 300px !important;
     width: 100% !important;
     height: auto !important;
     border-radius: 20px !important;
+    margin: 0 auto !important;
   }
 
   .floating-card-top {
@@ -2928,64 +2956,83 @@ html, body {
 
 @media (max-width: 540px) {
   .hero-section-3d {
-    padding: 32px 0 48px !important;
+    padding: 28px 0 42px !important;
   }
 
-  .hero-content {
+  .hero-grid {
     padding: 0 16px !important;
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
-  .hero-headline {
-    font-size: 28px !important;
-    letter-spacing: -0.02em !important;
-    line-height: 1.2 !important;
+  .hero-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    align-items: center !important;
     text-align: center !important;
-    padding: 0 4px !important;
+  }
+
+  .hero-headline {
+    font-size: 27px !important;
+    line-height: 1.25 !important;
+    text-align: center !important;
+    margin: 0 auto 16px !important;
+    width: 100% !important;
   }
 
   .hero-description {
     font-size: 14px !important;
+    line-height: 1.55 !important;
     text-align: center !important;
-    padding: 0 4px !important;
+    margin: 0 auto 22px !important;
+    width: 100% !important;
   }
 
   .hero-actions {
+    display: flex !important;
     flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
     width: 100% !important;
-    max-width: 340px !important;
-    margin: 0 auto !important;
-    gap: 12px !important;
+    max-width: 320px !important;
+    margin: 0 auto 18px !important;
+    gap: 10px !important;
   }
 
   .hero-actions .btn {
     width: 100% !important;
     max-width: 320px !important;
     margin: 0 auto !important;
-    padding: 13px 20px !important;
-    border-radius: 14px !important;
+    padding: 12px 18px !important;
+    border-radius: 12px !important;
     text-align: center !important;
+    box-sizing: border-box !important;
   }
 
   .hero-search-bar {
+    display: flex !important;
+    align-items: center !important;
     width: 100% !important;
-    max-width: 340px !important;
-    margin: 20px auto 0 !important;
-    padding: 6px 6px 6px 14px !important;
-    border-radius: 14px !important;
+    max-width: 320px !important;
+    margin: 0 auto 22px !important;
+    padding: 5px 6px 5px 12px !important;
+    border-radius: 12px !important;
     box-sizing: border-box !important;
   }
 
   .hero-search-bar input {
-    font-size: 13px !important;
+    font-size: 12.5px !important;
     min-width: 0 !important;
+    width: 100% !important;
   }
 
   .hero-search-bar button {
-    padding: 7px 14px !important;
+    padding: 7px 12px !important;
     font-size: 12px !important;
     flex-shrink: 0 !important;
+    border-radius: 8px !important;
   }
 
   .hero-social-proof {
@@ -2993,23 +3040,26 @@ html, body {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
-    margin: 22px auto 0 !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin: 0 auto !important;
     text-align: center !important;
   }
 
   .avatar-stack {
     margin: 0 auto !important;
+    justify-content: center !important;
   }
 
   .proof-text {
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     text-align: center !important;
-    line-height: 1.45 !important;
+    line-height: 1.4 !important;
+    width: 100% !important;
   }
 
   .hero-3d-visual {
-    max-width: 250px !important;
+    max-width: 240px !important;
   }
 
   /* Hide floating badge cards on small smartphone screens to keep layout clean & un-cluttered */
