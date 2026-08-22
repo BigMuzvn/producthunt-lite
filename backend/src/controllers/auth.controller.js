@@ -13,7 +13,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
@@ -24,28 +24,32 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const otpCode = generateOtp();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const newUser = await User.create({
       name,
-      email,
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
-      isVerified: false,
-      otpCode,
-      otpExpires
+      isVerified: true
     });
 
-    try {
-      await sendOtpEmail(newUser.email, otpCode);
-      console.log('Email envoyé avec succès à', newUser.email);
-    } catch (emailError) {
-      console.log('ERREUR ENVOI EMAIL:', emailError.message);
-    }
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
-      message: 'Compte créé. Un code de vérification a été envoyé par email.',
-      email: newUser.email
+      message: 'Compte créé avec succès',
+      token,
+      user: {
+        _id: newUser._id,
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        bio: newUser.bio || '',
+        avatarUrl: newUser.avatarUrl || '',
+        githubUrl: newUser.githubUrl || '',
+        twitterUrl: newUser.twitterUrl || '',
+        portfolioUrl: newUser.portfolioUrl || '',
+        isAdmin: newUser.isAdmin || false,
+        isSuperAdmin: newUser.isSuperAdmin || false
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });

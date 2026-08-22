@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../services/auth.service'
+import { register, saveAuth } from '../services/auth.service'
 import './AuthPages.css'
-import { validateEmail } from '../services/util.service'
 import PasswordRequirements from '../components/PasswordRequirements'
 
 export default function SignupPage() {
@@ -13,48 +12,23 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const [emailCheck, setEmailCheck] = useState(null)
-  const [checkingEmail, setCheckingEmail] = useState(false)
 
   useEffect(() => {
     document.title = 'Inscription — ProductHunt Lite'
   }, [])
 
-  async function handleEmailBlur() {
-    if (!email) return
-    setCheckingEmail(true)
-    try {
-      const result = await validateEmail(email)
-      setEmailCheck(result)
-    } catch (err) {
-      console.error('Erreur validation email:', err.message)
-      setEmailCheck(null)
-    } finally {
-      setCheckingEmail(false)
-    }
-  }
-
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
-    if (checkingEmail) {
-      setError('Vérification de l\'email en cours, réessaie dans un instant.')
-      return
-    }
-    if (!emailCheck || !emailCheck.formatValid || !emailCheck.mxFound) {
-      setError('Merci de renseigner un email valide avant de continuer.')
-      return
-    }
-    if (emailCheck.disposable) {
-      setError('Les adresses email jetables ne sont pas acceptées.')
-      return
-    }
-
     setLoading(true)
     try {
-      await register(name, email, password)
-      navigate('/verify-otp', { state: { email } })
+      const res = await register(name, email, password)
+      if (res.token && res.user) {
+        saveAuth(res.token, res.user)
+      }
+      navigate('/')
+      window.location.reload()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -111,32 +85,9 @@ export default function SignupPage() {
                   placeholder="nom@exemple.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onBlur={handleEmailBlur}
                   required
                 />
               </div>
-              {checkingEmail && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, fontSize: 12, color: 'var(--text-muted)' }}>
-                  <span>Vérification de l'adresse email...</span>
-                </div>
-              )}
-              {emailCheck && !checkingEmail && (
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginTop: 6,
-                  padding: '3px 8px',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: emailCheck.formatValid && emailCheck.mxFound && !emailCheck.disposable ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                  color: emailCheck.formatValid && emailCheck.mxFound && !emailCheck.disposable ? '#4ADE80' : '#F87171',
-                  border: `1px solid ${emailCheck.formatValid && emailCheck.mxFound && !emailCheck.disposable ? 'rgba(34, 197, 94, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`
-                }}>
-                  <span>{emailCheck.disposable ? '⚠ Email temporaire/jetable non autorisé' : emailCheck.formatValid && emailCheck.mxFound ? '✓ Email vérifié et valide' : '⚠ Adresse email invalide'}</span>
-                </div>
-              )}
             </div>
 
             <div className="auth-field">
