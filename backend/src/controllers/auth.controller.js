@@ -24,32 +24,28 @@ export const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const otpCode = generateOtp();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const newUser = await User.create({
       name,
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      isVerified: true
+      isVerified: false,
+      otpCode,
+      otpExpires
     });
 
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    try {
+      await sendOtpEmail(newUser.email, otpCode);
+      console.log('Email OTP envoyé avec succès à', newUser.email);
+    } catch (emailError) {
+      console.log('ERREUR ENVOI EMAIL OTP:', emailError.message);
+    }
 
     res.status(201).json({
-      message: 'Compte créé avec succès',
-      token,
-      user: {
-        _id: newUser._id,
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-        bio: newUser.bio || '',
-        avatarUrl: newUser.avatarUrl || '',
-        githubUrl: newUser.githubUrl || '',
-        twitterUrl: newUser.twitterUrl || '',
-        portfolioUrl: newUser.portfolioUrl || '',
-        isAdmin: newUser.isAdmin || false,
-        isSuperAdmin: newUser.isSuperAdmin || false
-      }
+      message: 'Compte créé. Un code de vérification a été envoyé par email.',
+      email: newUser.email
     });
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message });

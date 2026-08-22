@@ -23,12 +23,8 @@ export default function SignupPage() {
 
     setLoading(true)
     try {
-      const res = await register(name, email, password)
-      if (res.token && res.user) {
-        saveAuth(res.token, res.user)
-      }
-      navigate('/')
-      window.location.reload()
+      await register(name, email, password)
+      navigate('/verify-otp', { state: { email } })
     } catch (err) {
       setError(err.message)
     } finally {
