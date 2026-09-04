@@ -1,5 +1,20 @@
+import { randomInt } from 'crypto';
+
 export function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
+}
+
+// Échappe le contenu fourni par un utilisateur (nom, commentaire, titre de produit...)
+// avant de l'interpoler dans le HTML d'un email transactionnel — sans ça, un nom ou
+// un commentaire contenant des balises finit injecté tel quel dans l'email envoyé.
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[char]));
 }
 
 // context permet de personnaliser le titre/texte selon l'usage (vérification de
@@ -81,6 +96,8 @@ export async function sendNotificationEmail(to, context = {}) {
 // Notification envoyée au créateur lorsqu'un palier de votes est franchi
 export async function sendVoteMilestoneEmail(makerEmail, makerName, productName, votesCount) {
   try {
+    const safeMakerName = escapeHtml(makerName);
+    const safeProductName = escapeHtml(productName);
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -97,9 +114,9 @@ export async function sendVoteMilestoneEmail(makerEmail, makerName, productName,
               <span style="font-size: 40px;">🚀</span>
               <h2 style="color: #7C6CF4; margin-top: 8px;">Nouveau cap franchi !</h2>
             </div>
-            <p>Bonjour <strong>${makerName}</strong>,</p>
+            <p>Bonjour <strong>${safeMakerName}</strong>,</p>
             <p style="font-size: 15px; line-height: 1.6;">
-              Ton produit <strong>"${productName}"</strong> gagne en visibilité et vient d'atteindre le palier symbolique de 
+              Ton produit <strong>"${safeProductName}"</strong> gagne en visibilité et vient d'atteindre le palier symbolique de
               <strong style="color: #7C6CF4; font-size: 18px;"> ${votesCount} votes</strong> sur ProductHunt Lite !
             </p>
             <div style="background: #F8F7FF; border-left: 4px solid #7C6CF4; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
@@ -122,6 +139,10 @@ export async function sendVoteMilestoneEmail(makerEmail, makerName, productName,
 export async function sendNewCommentEmail(makerEmail, makerName, productName, commenterName, commentExcerpt, productId) {
   try {
     const productUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/products/${productId}`;
+    const safeMakerName = escapeHtml(makerName);
+    const safeProductName = escapeHtml(productName);
+    const safeCommenterName = escapeHtml(commenterName);
+    const safeCommentExcerpt = escapeHtml(commentExcerpt);
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
@@ -136,12 +157,12 @@ export async function sendNewCommentEmail(makerEmail, makerName, productName, co
           <div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #211F30; padding: 24px; border: 1px solid #E6E4F5; border-radius: 16px;">
             <div style="margin-bottom: 20px;">
               <h2 style="color: #7C6CF4; margin: 0 0 8px;">Nouveau retour reçu</h2>
-              <p style="color: #666; font-size: 14px; margin: 0;">Sur ton produit <strong>"${productName}"</strong></p>
+              <p style="color: #666; font-size: 14px; margin: 0;">Sur ton produit <strong>"${safeProductName}"</strong></p>
             </div>
-            <p>Bonjour <strong>${makerName}</strong>,</p>
-            <p><strong>${commenterName}</strong> a laissé un commentaire sur ton projet :</p>
+            <p>Bonjour <strong>${safeMakerName}</strong>,</p>
+            <p><strong>${safeCommenterName}</strong> a laissé un commentaire sur ton projet :</p>
             <div style="background: #F8F7FF; border: 1px solid #E6E4F5; border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-style: italic; color: #211F30;">
-              "${commentExcerpt}"
+              "${safeCommentExcerpt}"
             </div>
             <div style="text-align: center; margin: 24px 0;">
               <a href="${productUrl}" style="display: inline-block; background: #7C6CF4; color: #FFFFFF; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;">

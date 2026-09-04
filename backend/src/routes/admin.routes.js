@@ -9,6 +9,9 @@ import {
   toggleAdmin,
   adminDeleteProduct,
   adminDeleteCategory,
+  getPendingCategories,
+  approveCategory,
+  rejectCategory,
   createAdmin,
   updateOwnName,
   requestEmailChangeOtp,
@@ -30,6 +33,9 @@ router.delete('/users/:id', deleteUser);
 router.put('/users/:id/toggle-admin', toggleAdmin);
 router.delete('/products/:id', adminDeleteProduct);
 router.delete('/categories/:id', adminDeleteCategory);
+router.get('/categories/pending', getPendingCategories);
+router.put('/categories/:id/approve', approveCategory);
+router.delete('/categories/:id/reject', rejectCategory);
 router.post('/create-admin', createAdmin);
 
 // Profil de l'admin connecté

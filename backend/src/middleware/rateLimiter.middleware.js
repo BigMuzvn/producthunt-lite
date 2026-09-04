@@ -32,3 +32,15 @@ export const otpVerifyLimiter = rateLimit({
     message: 'Trop de tentatives de validation de code. Veuillez réessayer plus tard.'
   }
 });
+
+// Limiteur pour la création de catégorie (feature ouverte à tout utilisateur connecté
+// lors de la soumission d'un produit) : évite le spam de catégories bidon.
+export const categoryCreateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // max 10 créations par IP par fenêtre
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Trop de créations de catégorie. Veuillez réessayer plus tard.'
+  }
+});

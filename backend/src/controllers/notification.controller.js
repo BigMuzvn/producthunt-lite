@@ -1,4 +1,5 @@
 import Notification from '../models/Notification.js';
+import { serverError } from '../utils/serverError.js';
 
 export async function getNotifications(req, res) {
   try {
@@ -13,7 +14,7 @@ export async function getNotifications(req, res) {
 
     return res.json({ notifications, unreadCount });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return serverError(res, err);
   }
 }
 
@@ -23,7 +24,7 @@ export async function markAllRead(req, res) {
     await Notification.updateMany({ recipientId: userId, isRead: false }, { isRead: true });
     return res.json({ message: 'Toutes les notifications ont été marquées comme lues.' });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return serverError(res, err);
   }
 }
 

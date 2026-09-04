@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import Category from '../models/Category.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
@@ -39,15 +40,20 @@ async function seed() {
   console.log('Anciennes catégories et produits supprimés');
 
   // 2. Créer (ou réutiliser) un utilisateur "démo" comme maker
-  let demoUser = await User.findOne({ email: 'iammuzvn0@gmail.com' });
+  // Email/mot de passe configurables via .env (jamais commités) ; à défaut,
+  // un email neutre + un mot de passe aléatoire généré à chaque exécution.
+  const demoEmail = (process.env.SEED_DEMO_EMAIL || 'demo@producthunt-lite.local').toLowerCase().trim();
+  let demoUser = await User.findOne({ email: demoEmail });
   if (!demoUser) {
-    const hashedPassword = await bcrypt.hash('250505', 10);
+    const demoPassword = process.env.SEED_DEMO_PASSWORD || crypto.randomBytes(12).toString('base64url');
+    const hashedPassword = await bcrypt.hash(demoPassword, 10);
     demoUser = await User.create({
-      name: 'Muzvn',
-      email: 'iammuzvn0@gmail.com',
-      password: hashedPassword
+      name: 'Demo Maker',
+      email: demoEmail,
+      password: hashedPassword,
+      isVerified: true
     });
-    console.log('Utilisateur démo créé');
+    console.log(`Utilisateur démo créé — email: ${demoEmail} / mot de passe: ${demoPassword} (à noter tout de suite, non stocké en clair ailleurs)`);
   } else {
     console.log('Utilisateur démo déjà existant, réutilisé');
   }

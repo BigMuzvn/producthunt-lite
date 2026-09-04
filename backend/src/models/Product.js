@@ -22,10 +22,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  // Pas "required" : un produit peut se retrouver sans catégorie si celle qu'il
+  // référençait était en attente de validation et a été rejetée par un admin
+  // (voir admin.controller.js -> rejectCategory).
   categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Category',
-    required: true
+    default: null
   },
   makerId: {
     type: mongoose.Schema.Types.ObjectId,

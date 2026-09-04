@@ -3,6 +3,7 @@ import Product from '../models/Product.js';
 import User from '../models/User.js';
 import { sendNewCommentEmail } from '../utils/sendEmail.js';
 import { sendNotification } from './notification.controller.js';
+import { serverError } from '../utils/serverError.js';
 
 export const getProductComments = async (req, res) => {
   try {
@@ -14,7 +15,7 @@ export const getProductComments = async (req, res) => {
 
     res.status(200).json(comments);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -84,7 +85,7 @@ export const createComment = async (req, res) => {
 
     res.status(201).json(populatedComment);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -111,6 +112,6 @@ export const deleteComment = async (req, res) => {
 
     res.status(200).json({ message: 'Commentaire supprimé avec succès.' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };

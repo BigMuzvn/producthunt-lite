@@ -4,16 +4,24 @@ import User from '../models/User.js';
 import Product from '../models/Product.js';
 import { sendOtpEmail, sendNotificationEmail, generateOtp } from '../utils/sendEmail.js';
 import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
+import { normalizeEmail, isValidEmailFormat } from '../utils/normalizeEmail.js';
+import { serverError } from '../utils/serverError.js';
+import { isValidHttpUrl } from '../utils/validateUrl.js';
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!isValidEmailFormat(email)) {
+      return res.status(400).json({ message: 'Adresse email invalide' });
+    }
+
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé' });
     }
@@ -48,15 +56,16 @@ export const register = async (req, res) => {
       email: newUser.email
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const verifyOtp = async (req, res) => {
   try {
-    const { email, otpCode } = req.body;
+    const { otpCode } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    if (!email || !otpCode) {
+    if (!email || !otpCode || typeof otpCode !== 'string') {
       return res.status(400).json({ message: 'Email et code requis' });
     }
 
@@ -82,7 +91,7 @@ export const verifyOtp = async (req, res) => {
     user.otpExpires = null;
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id, tokenVersion: user.tokenVersion || 0 }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
       token,
@@ -101,13 +110,16 @@ export const verifyOtp = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const resendOtp = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
+    if (!email) {
+      return res.status(400).json({ message: 'Email requis' });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -129,19 +141,20 @@ export const resendOtp = async (req, res) => {
 
     res.status(200).json({ message: 'Nouveau code envoyé' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!email || !password) {
       return res.status(400).json({ message: 'Email et mot de passe requis' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: 'Identifiants invalides' });
     }
@@ -180,7 +193,7 @@ export const login = async (req, res) => {
       return res.status(403).json({ message: 'Compte non vérifié', needsVerification: true, email: user.email });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user._id, tokenVersion: user.tokenVersion || 0 }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(200).json({
       token,
@@ -199,13 +212,13 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!email) {
       return res.status(400).json({ message: 'Email requis' });
@@ -226,15 +239,16 @@ export const forgotPassword = async (req, res) => {
 
     res.status(200).json({ message: 'Si ce compte existe, un code a été envoyé.' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email, otpCode, newPassword } = req.body;
+    const { otpCode, newPassword } = req.body;
+    const email = normalizeEmail(req.body.email);
 
-    if (!email || !otpCode || !newPassword) {
+    if (!email || !otpCode || typeof otpCode !== 'string' || !newPassword || typeof newPassword !== 'string') {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
     }
 
@@ -265,11 +279,13 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     user.otpCode = null;
     user.otpExpires = null;
+    // Invalide toute session/tout token existant (utile si le compte était compromis).
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
 
     res.status(200).json({ message: 'Mot de passe mis à jour avec succès' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -303,11 +319,16 @@ export const changePassword = async (req, res) => {
 
     user.passwordHistory = pushToPasswordHistory(user);
     user.password = await bcrypt.hash(newPassword, 10);
+    // Invalide tout token émis avant ce changement (session courante incluse) ;
+    // on renvoie donc un token frais pour que la session actuelle reste valide.
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
 
-    res.status(200).json({ message: 'Mot de passe mis à jour avec succès' });
+    const token = jwt.sign({ userId: user._id, tokenVersion: user.tokenVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(200).json({ message: 'Mot de passe mis à jour avec succès', token });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -336,16 +357,21 @@ export const changeName = async (req, res) => {
 
     res.status(200).json({ message: 'Nom mis à jour avec succès', user: publicUserData });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const changeEmail = async (req, res) => {
   try {
-    const { newEmail, currentPassword } = req.body;
+    const { currentPassword } = req.body;
+    const newEmail = normalizeEmail(req.body.newEmail);
 
     if (!newEmail || !currentPassword) {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    if (!isValidEmailFormat(newEmail)) {
+      return res.status(400).json({ message: 'Adresse email invalide' });
     }
 
     const user = await User.findById(req.userId);
@@ -358,13 +384,13 @@ export const changeEmail = async (req, res) => {
       return res.status(401).json({ message: 'Mot de passe incorrect' });
     }
 
-    const existingUser = await User.findOne({ email: newEmail.toLowerCase().trim() });
+    const existingUser = await User.findOne({ email: newEmail });
     if (existingUser && existingUser._id.toString() !== user._id.toString()) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
     }
 
     const oldEmail = user.email;
-    user.email = newEmail.toLowerCase().trim();
+    user.email = newEmail;
     await user.save();
 
     // Notification de sécurité à l'ancienne adresse email
@@ -384,7 +410,7 @@ export const changeEmail = async (req, res) => {
 
     res.status(200).json({ message: 'Email mis à jour avec succès', user: publicUserData });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -410,7 +436,7 @@ export const deleteAccount = async (req, res) => {
 
     res.status(200).json({ message: 'Compte supprimé avec succès' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -422,6 +448,12 @@ export const updateProfile = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'Compte introuvable' });
+    }
+
+    for (const [field, value] of Object.entries({ avatarUrl, githubUrl, twitterUrl, portfolioUrl })) {
+      if (value && !isValidHttpUrl(value)) {
+        return res.status(400).json({ message: `Le lien "${field}" doit être une URL http(s) valide` });
+      }
     }
 
     if (name) user.name = name.trim();
@@ -449,21 +481,28 @@ export const updateProfile = async (req, res) => {
 
     res.status(200).json({ message: 'Profil mis à jour avec succès', user: publicUserData });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const getMakerProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const maker = await User.findById(id).select('-password -passwordHistory -otpCode -otpExpires');
+    const maker = await User.findById(id).select('-password -passwordHistory -otpCode -otpExpires -pendingEmail -pendingPasswordHash -loginAttempts -lockUntil');
     if (!maker) {
       return res.status(404).json({ message: 'Maker introuvable' });
     }
 
     const products = await Product.find({ makerId: id })
-      .populate('categoryId', 'name color')
+      .populate('categoryId', 'name color status')
       .sort({ createdAt: -1 });
+
+    // Seuls les comptes ayant publié au moins un produit ont un profil "maker"
+    // consultable publiquement : ça évite d'exposer l'email de tout inscrit
+    // (simple votant/commentateur) via une simple énumération d'ID.
+    if (products.length === 0) {
+      return res.status(404).json({ message: 'Maker introuvable' });
+    }
 
     const totalVotes = products.reduce((acc, p) => acc + (p.votesCount || 0), 0);
 
@@ -486,7 +525,7 @@ export const getMakerProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -518,7 +557,7 @@ export const toggleBookmark = async (req, res) => {
       bookmarks: user.bookmarks
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -539,6 +578,6 @@ export const getBookmarks = async (req, res) => {
 
     res.status(200).json({ bookmarks: user.bookmarks || [] });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };

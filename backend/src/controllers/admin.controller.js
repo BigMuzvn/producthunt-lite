@@ -3,8 +3,11 @@ import Product from '../models/Product.js';
 import Category from '../models/Category.js';
 import Vote from '../models/Vote.js';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { validatePasswordComplexity, checkPasswordReuse, pushToPasswordHistory } from '../utils/passwordValidation.js';
 import { sendOtpEmail, sendNotificationEmail, generateOtp } from '../utils/sendEmail.js';
+import { normalizeEmail, isValidEmailFormat } from '../utils/normalizeEmail.js';
+import { serverError } from '../utils/serverError.js';
 
 export const getStats = async (req, res) => {
   try {
@@ -83,7 +86,7 @@ export const getStats = async (req, res) => {
       evolution
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -102,7 +105,7 @@ export const getAllUsers = async (req, res) => {
 
     res.status(200).json(usersWithCounts);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -136,7 +139,7 @@ export const deleteUser = async (req, res) => {
 
     res.status(200).json({ message: 'Utilisateur supprimé' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -161,7 +164,7 @@ export const toggleAdmin = async (req, res) => {
 
     res.status(200).json({ message: 'Rôle mis à jour', isAdmin: target.isAdmin });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -174,7 +177,7 @@ export const adminDeleteProduct = async (req, res) => {
 
     res.status(200).json({ message: 'Produit supprimé' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -192,7 +195,64 @@ export const adminDeleteCategory = async (req, res) => {
     await Category.findByIdAndDelete(categoryId);
     res.status(200).json({ message: 'Catégorie supprimée' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
+  }
+};
+
+// ─── File d'attente de validation des catégories créées par des utilisateurs ──
+
+export const getPendingCategories = async (req, res) => {
+  try {
+    const categories = await Category.find({ status: 'pending' })
+      .populate('createdBy', 'name email')
+      .sort({ createdAt: 1 });
+    res.status(200).json(categories);
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+export const approveCategory = async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: 'Catégorie introuvable' });
+    }
+    if (category.status !== 'pending') {
+      return res.status(400).json({ message: 'Cette catégorie n\'est pas en attente de validation' });
+    }
+
+    category.status = 'approved';
+    await category.save();
+
+    res.status(200).json({ message: 'Catégorie approuvée', category });
+  } catch (error) {
+    serverError(res, error);
+  }
+};
+
+export const rejectCategory = async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: 'Catégorie introuvable' });
+    }
+    if (category.status !== 'pending') {
+      return res.status(400).json({ message: 'Cette catégorie n\'est pas en attente de validation' });
+    }
+
+    // Les produits qui référençaient cette catégorie repassent "sans catégorie"
+    // plutôt que de garder une référence morte vers une catégorie supprimée.
+    const { modifiedCount } = await Product.updateMany(
+      { categoryId: category._id },
+      { $unset: { categoryId: 1 } }
+    );
+
+    await category.deleteOne();
+
+    res.status(200).json({ message: 'Catégorie rejetée', productsUncategorized: modifiedCount });
+  } catch (error) {
+    serverError(res, error);
   }
 };
 
@@ -203,10 +263,15 @@ export const createAdmin = async (req, res) => {
       return res.status(403).json({ message: 'Seul le super admin peut créer un compte admin' });
     }
 
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Tous les champs sont requis' });
+    }
+
+    if (!isValidEmailFormat(email)) {
+      return res.status(400).json({ message: 'Adresse email invalide' });
     }
 
     const existingUser = await User.findOne({ email });
@@ -234,7 +299,7 @@ export const createAdmin = async (req, res) => {
       user: { id: newAdmin._id, name: newAdmin.name, email: newAdmin.email }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -263,7 +328,7 @@ export const updateOwnName = async (req, res) => {
 
     res.status(200).json({ message: 'Nom mis à jour avec succès', user: publicUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -272,9 +337,14 @@ export const updateOwnName = async (req, res) => {
 // ancienne boîte mail, ce qui est justement souvent la raison du changement.
 export const requestEmailChangeOtp = async (req, res) => {
   try {
-    const { newEmail, currentPassword } = req.body;
+    const { currentPassword } = req.body;
+    const newEmail = normalizeEmail(req.body.newEmail);
     if (!newEmail || !currentPassword) {
       return res.status(400).json({ message: 'Nouvel email et mot de passe actuel requis' });
+    }
+
+    if (!isValidEmailFormat(newEmail)) {
+      return res.status(400).json({ message: 'Adresse email invalide' });
     }
 
     const user = await User.findById(req.userId);
@@ -284,17 +354,17 @@ export const requestEmailChangeOtp = async (req, res) => {
       return res.status(401).json({ message: 'Mot de passe actuel incorrect' });
     }
 
-    if (newEmail.toLowerCase() === user.email.toLowerCase()) {
+    if (newEmail === user.email.toLowerCase()) {
       return res.status(400).json({ message: 'Cette adresse est déjà ton email actuel' });
     }
 
-    const existingUser = await User.findOne({ email: newEmail.toLowerCase() });
+    const existingUser = await User.findOne({ email: newEmail });
     if (existingUser) {
       return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
     }
 
     const otpCode = generateOtp();
-    user.pendingEmail = newEmail.toLowerCase();
+    user.pendingEmail = newEmail;
     user.otpCode = otpCode;
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
@@ -307,7 +377,7 @@ export const requestEmailChangeOtp = async (req, res) => {
 
     res.status(200).json({ message: 'Code envoyé à la nouvelle adresse' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -347,7 +417,7 @@ export const confirmEmailChange = async (req, res) => {
 
     res.status(200).json({ message: 'Email mis à jour avec succès', user: publicUser(user) });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -392,7 +462,7 @@ export const requestPasswordChangeOtp = async (req, res) => {
 
     res.status(200).json({ message: 'Code envoyé à ton adresse actuelle' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -419,11 +489,14 @@ export const confirmPasswordChange = async (req, res) => {
     user.pendingPasswordHash = null;
     user.otpCode = null;
     user.otpExpires = null;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     await user.save();
 
-    res.status(200).json({ message: 'Mot de passe mis à jour avec succès' });
+    const token = jwt.sign({ userId: user._id, tokenVersion: user.tokenVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(200).json({ message: 'Mot de passe mis à jour avec succès', token });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -457,19 +530,25 @@ export const updateOtherAdmin = async (req, res) => {
       target.name = name.trim();
     }
 
-    if (email !== undefined && email.toLowerCase() !== target.email) {
-      const existingUser = await User.findOne({ email: email.toLowerCase() });
-      if (existingUser) {
-        return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
+    if (email !== undefined) {
+      const normalizedEmail = normalizeEmail(email);
+      if (!normalizedEmail || !isValidEmailFormat(normalizedEmail)) {
+        return res.status(400).json({ message: 'Email invalide' });
       }
-      target.email = email.toLowerCase();
+      if (normalizedEmail !== target.email) {
+        const existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+          return res.status(409).json({ message: 'Cet email est déjà utilisé par un autre compte' });
+        }
+        target.email = normalizedEmail;
+      }
     }
 
     await target.save();
 
     res.status(200).json({ message: 'Admin mis à jour avec succès', user: publicUser(target) });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -504,10 +583,11 @@ export const resetOtherAdminPassword = async (req, res) => {
 
     target.passwordHistory = pushToPasswordHistory(target);
     target.password = await bcrypt.hash(newPassword, 10);
+    target.tokenVersion = (target.tokenVersion || 0) + 1;
     await target.save();
 
     res.status(200).json({ message: 'Mot de passe de l\'admin mis à jour avec succès' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };

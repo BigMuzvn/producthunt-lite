@@ -82,6 +82,13 @@ const userSchema = new mongoose.Schema({
   lockUntil: {
     type: Date,
     default: null
+  },
+  // Incrémenté à chaque changement de mot de passe : les JWT signés avec un
+  // ancien tokenVersion sont rejetés par le middleware `protect`, ce qui
+  // invalide tous les tokens émis avant le changement (y compris un token volé).
+  tokenVersion: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 

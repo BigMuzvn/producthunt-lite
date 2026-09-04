@@ -3,6 +3,8 @@ import User from '../models/User.js';
 import Vote from '../models/Vote.js';
 import { sendVoteMilestoneEmail } from '../utils/sendEmail.js';
 import { sendNotification } from './notification.controller.js';
+import { serverError } from '../utils/serverError.js';
+import { isValidHttpUrl } from '../utils/validateUrl.js';
 
 export const getProducts = async (req, res) => {
   try {
@@ -26,7 +28,7 @@ export const getProducts = async (req, res) => {
     }
 
     let query = Product.find(filter)
-      .populate('categoryId', 'name slug color')
+      .populate('categoryId', 'name slug color status')
       .populate('makerId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl')
       .sort(sortQuery);
 
@@ -40,14 +42,14 @@ export const getProducts = async (req, res) => {
     const products = await query;
     res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('categoryId', 'name slug color')
+      .populate('categoryId', 'name slug color status')
       .populate('makerId', 'name avatarUrl bio githubUrl twitterUrl portfolioUrl');
 
     if (!product) {
@@ -56,7 +58,7 @@ export const getProductById = async (req, res) => {
 
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -70,6 +72,16 @@ export const createProduct = async (req, res) => {
 
     if (!name || !tagline || !description || !websiteUrl || !categoryId) {
       return res.status(400).json({ message: 'Tous les champs obligatoires doivent être remplis' });
+    }
+
+    if (!isValidHttpUrl(websiteUrl)) {
+      return res.status(400).json({ message: 'Le lien du site doit être une URL http(s) valide' });
+    }
+    if (logoUrl && !isValidHttpUrl(logoUrl)) {
+      return res.status(400).json({ message: 'Le lien du logo doit être une URL http(s) valide' });
+    }
+    if (contactUrl && !isValidHttpUrl(contactUrl)) {
+      return res.status(400).json({ message: 'Le lien du réseau social doit être une URL http(s) valide' });
     }
 
     const newProduct = await Product.create({
@@ -87,7 +99,7 @@ export const createProduct = async (req, res) => {
 
     res.status(201).json(newProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -142,7 +154,7 @@ export const voteProduct = async (req, res) => {
 
     res.status(201).json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -150,12 +162,12 @@ export const voteProduct = async (req, res) => {
 export const getMyProducts = async (req, res) => {
   try {
     const products = await Product.find({ makerId: req.userId })
-      .populate('categoryId', 'name slug color')
+      .populate('categoryId', 'name slug color status')
       .sort({ createdAt: -1 });
 
     res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -171,16 +183,34 @@ export const updateProduct = async (req, res) => {
     }
 
     const { name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId, images, status } = req.body;
-    Object.assign(product, {
-      name, tagline, description, logoUrl, websiteUrl, contactUrl, categoryId,
-      images: Array.isArray(images) ? images : product.images,
-      status: ['LIVE', 'BETA', 'OPEN_SOURCE'].includes(status) ? status : product.status
-    });
+
+    if (websiteUrl !== undefined && !isValidHttpUrl(websiteUrl)) {
+      return res.status(400).json({ message: 'Le lien du site doit être une URL http(s) valide' });
+    }
+    if (logoUrl && !isValidHttpUrl(logoUrl)) {
+      return res.status(400).json({ message: 'Le lien du logo doit être une URL http(s) valide' });
+    }
+    if (contactUrl && !isValidHttpUrl(contactUrl)) {
+      return res.status(400).json({ message: 'Le lien du réseau social doit être une URL http(s) valide' });
+    }
+
+    // On ne touche qu'aux champs réellement envoyés : une mise à jour partielle
+    // ne doit jamais écraser le reste du produit avec des valeurs undefined.
+    if (name !== undefined) product.name = name;
+    if (tagline !== undefined) product.tagline = tagline;
+    if (description !== undefined) product.description = description;
+    if (logoUrl !== undefined) product.logoUrl = logoUrl;
+    if (websiteUrl !== undefined) product.websiteUrl = websiteUrl;
+    if (contactUrl !== undefined) product.contactUrl = contactUrl;
+    if (categoryId !== undefined) product.categoryId = categoryId;
+    if (Array.isArray(images)) product.images = images;
+    if (['LIVE', 'BETA', 'OPEN_SOURCE'].includes(status)) product.status = status;
+
     await product.save();
 
     res.status(200).json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -195,7 +225,7 @@ export const deleteProduct = async (req, res) => {
     await product.deleteOne();
     res.status(200).json({ message: 'Produit supprimé' });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -204,7 +234,7 @@ export const getMyVotes = async (req, res) => {
     const votes = await Vote.find({ userId: req.userId }).select('productId');
     res.status(200).json(votes.map(v => v.productId));
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };
 
@@ -229,6 +259,6 @@ export const unvoteProduct = async (req, res) => {
 
     res.status(200).json(updatedProduct);
   } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+    serverError(res, error);
   }
 };

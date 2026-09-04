@@ -47,9 +47,13 @@ app.use(cors({
 
     const originLower = origin.toLowerCase();
     const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(originLower);
-    const isVercelDomain = originLower.endsWith('.vercel.app');
+    // Uniquement les déploiements (prod + previews) DE CE projet Vercel précis
+    // (ex: producthunt-lite.vercel.app, producthunt-lite-git-main-xxx.vercel.app) —
+    // pas n'importe quel *.vercel.app, qui est trivial à obtenir gratuitement par
+    // n'importe qui et briserait l'intérêt d'une allowlist d'origines.
+    const isOwnVercelDeployment = /^https:\/\/producthunt-lite(-[a-z0-9.-]+)?\.vercel\.app$/.test(originLower);
 
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(originLower) || isLocalhost || isVercelDomain) {
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(originLower) || isLocalhost || isOwnVercelDeployment) {
       return callback(null, origin);
     }
 
