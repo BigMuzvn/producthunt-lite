@@ -103,16 +103,21 @@ export default function SubmitProductPage() {
     setLoading(true)
     try {
       let categoryId = form.categoryId
+      let categoryPending = false
       if (isNewCategory) {
         if (!newCategoryName.trim()) throw new Error('Nom de catégorie requis')
         const newCat = await createCategory(newCategoryName.trim())
         categoryId = newCat._id
+        categoryPending = newCat.status === 'pending'
       }
       const payload = { ...form, categoryId, images }
       if (isEdit) {
         await updateProduct(id, payload)
       } else {
         await createProduct(payload)
+      }
+      if (categoryPending) {
+        window.alert('Ta nouvelle catégorie a été envoyée à un administrateur pour validation. En attendant, ton produit reste publié sans catégorie affichée — elle apparaîtra automatiquement une fois approuvée.')
       }
       navigate('/dashboard')
     } catch (err) {

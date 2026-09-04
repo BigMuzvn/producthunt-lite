@@ -28,6 +28,18 @@ export function adminDeleteCategory(id) {
   return apiFetch(`/admin/categories/${id}`, { method: 'DELETE', headers: authHeaders() });
 }
 
+export function getPendingCategories() {
+  return apiFetch('/admin/categories/pending', { headers: authHeaders() });
+}
+
+export function approveCategory(id) {
+  return apiFetch(`/admin/categories/${id}/approve`, { method: 'PUT', headers: authHeaders() });
+}
+
+export function rejectCategory(id) {
+  return apiFetch(`/admin/categories/${id}/reject`, { method: 'DELETE', headers: authHeaders() });
+}
+
 export function createAdmin(name, email, password) {
   return apiFetch('/admin/create-admin', {
     method: 'POST',

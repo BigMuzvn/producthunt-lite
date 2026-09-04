@@ -7,19 +7,35 @@ import PasswordRequirements from '../components/PasswordRequirements'
 export default function SignupPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  const EMAIL_FORMAT_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
   useEffect(() => {
     document.title = 'Inscription — ProductHunt Lite'
   }, [])
 
+  function handleEmailBlur() {
+    if (email && !EMAIL_FORMAT_RE.test(email)) {
+      setEmailError('Adresse email invalide')
+    } else {
+      setEmailError('')
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
+
+    if (!EMAIL_FORMAT_RE.test(email)) {
+      setEmailError('Adresse email invalide')
+      return
+    }
 
     setLoading(true)
     try {
@@ -80,10 +96,12 @@ export default function SignupPage() {
                   type="email"
                   placeholder="nom@exemple.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError('') }}
+                  onBlur={handleEmailBlur}
                   required
                 />
               </div>
+              {emailError && <p className="auth-field-error">{emailError}</p>}
             </div>
 
             <div className="auth-field">

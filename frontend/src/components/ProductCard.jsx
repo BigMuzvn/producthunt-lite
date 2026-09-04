@@ -89,7 +89,7 @@ function ProductCard({ _id, name, tagline, logoUrl, categoryId, makerId, votesCo
           <div className="product-info">
             <div className="product-header-line">
               <h3 className="product-name">{name}</h3>
-              {categoryId && categoryId.name && (
+              {categoryId && categoryId.name && categoryId.status !== 'pending' && (
                 <span className="product-category-pill">
                   <span
                     className="product-category-dot"

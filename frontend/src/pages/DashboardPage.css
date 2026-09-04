@@ -217,6 +217,13 @@
   min-width: 0;
 }
 
+.dash-product-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .dash-product-title-link {
   text-decoration: none;
 }
@@ -297,14 +304,68 @@
 }
 
 @media (max-width: 680px) {
+  /* Rangée compacte : logo + titre/catégorie + votes sur une ligne,
+     tagline en dessous, actions (Modifier/Supprimer) sur leur propre ligne. */
   .dash-product-row {
-    flex-wrap: wrap;
-    gap: 14px;
+    display: grid;
+    grid-template-columns: 42px 1fr auto;
+    grid-template-areas:
+      "logo info votes"
+      "actions actions actions";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 10px;
+    padding: 14px 16px;
+    border-radius: 14px;
   }
+
+  .dash-product-logo {
+    grid-area: logo;
+    width: 42px;
+    height: 42px;
+    border-radius: 11px;
+  }
+
   .dash-product-info {
-    flex-basis: 100%;
-    order: 3;
+    grid-area: info;
+    min-width: 0;
   }
+
+  .dash-product-title-link h4 {
+    font-size: 15px;
+  }
+
+  .dash-product-info p {
+    font-size: 12.5px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .category-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .dash-votes-pill {
+    grid-area: votes;
+    font-size: 12px;
+    padding: 5px 11px;
+  }
+
+  .dash-product-actions {
+    grid-area: actions;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .dash-btn-action,
+  .dash-btn-delete {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
   .dash-top {
     flex-direction: column;
     align-items: flex-start;

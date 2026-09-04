@@ -46,6 +46,21 @@
   border-bottom-color: #38BDF8;
 }
 
+.admin-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #F59E0B;
+  color: #1A1425;
+  font-size: 10.5px;
+  font-weight: 800;
+  line-height: 1;
+}
+
 /* Toolbar & Recherche dans les onglets */
 .admin-tab-toolbar {
   display: flex;
@@ -399,7 +414,7 @@
 /* Grilles de Panneaux */
 .admin-panels-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 28px;
   margin-bottom: 36px;
 }
@@ -600,14 +615,77 @@
 }
 
 @media (max-width: 680px) {
+  /* Même logique que les cartes produit publiques : avatar/logo + identité
+     groupés en haut, actions (Détails/Voir/Supprimer) sur leur propre ligne
+     en dessous, au lieu de tout mélanger sur une ligne qui déborde. */
   .admin-row {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "avatar info"
+      "actions actions";
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 12px;
     padding: 14px 16px;
+    border-radius: 14px;
   }
+
+  .admin-user-avatar,
+  .admin-product-logo-fixed {
+    grid-area: avatar;
+  }
+
   .admin-row-info {
-    flex-basis: 100%;
-    order: 3;
+    grid-area: info;
+    min-width: 0;
   }
+
+  .admin-row-title {
+    font-size: 15px;
+  }
+
+  .admin-row-sub {
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-row-meta {
+    font-size: 11.5px;
+  }
+
+  /* Cas particulier : la carte du super admin n'a pas de bloc .admin-row-actions
+     (pas de boutons), juste ce span isolé en enfant direct de .admin-row — sans
+     zone de grille assignée, il finissait mal placé. On lui donne la ligne du bas. */
+  .admin-row > .admin-row-meta {
+    grid-area: actions;
+    text-align: right;
+  }
+
+  .admin-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .admin-row .category-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .admin-votes-pill {
+    font-size: 11.5px;
+    padding: 5px 10px;
+  }
+
+  .admin-row-actions {
+    grid-area: actions;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .admin-search-wrapper {
     max-width: 100%;
   }
@@ -632,17 +710,14 @@
     font-size: 26px;
   }
   .admin-tabs {
-    gap: 2px;
-    -webkit-overflow-scrolling: touch;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
+    gap: 4px 2px;
   }
   .admin-tabs button {
     padding: 10px 12px;
     font-size: 12.5px;
-  }
-  .admin-row-actions {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 6px;
   }
   .admin-evolution-chart {
     height: 140px;

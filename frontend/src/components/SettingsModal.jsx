@@ -86,7 +86,8 @@ export default function SettingsModal({ onClose }) {
 
     setLoading(true)
     try {
-      await changePassword(passwordForm.current, passwordForm.new)
+      const { token } = await changePassword(passwordForm.current, passwordForm.new)
+      if (token) saveAuth(token, getUser())
       setStatus('Mot de passe mis à jour avec succès.')
       setPasswordForm({ current: '', new: '', confirm: '' })
     } catch (err) {

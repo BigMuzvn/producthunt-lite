@@ -188,11 +188,11 @@ export default function DashboardPage() {
                     />
 
                     <div className="dash-product-info">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <div className="dash-product-title-row">
                         <Link to={`/products/${p._id}`} className="dash-product-title-link">
                           <h4>{p.name}</h4>
                         </Link>
-                        {p.categoryId?.name && (
+                        {p.categoryId?.name && p.categoryId.status !== 'pending' && (
                           <span className="category-tag">
                             <span className="category-dot" style={{ background: p.categoryId.color || '#38BDF8' }}></span>
                             {p.categoryId.name}
@@ -202,11 +202,11 @@ export default function DashboardPage() {
                       <p>{p.tagline}</p>
                     </div>
 
-                    <div className="dash-product-actions">
-                      <span className="dash-votes-pill">
-                        ▲ <span>{p.votesCount || 0}</span>
-                      </span>
+                    <span className="dash-votes-pill">
+                      ▲ <span>{p.votesCount || 0}</span>
+                    </span>
 
+                    <div className="dash-product-actions">
                       <Link to={`/products/${p._id}/edit`} className="btn btn-secondary dash-btn-action" title="Modifier le produit">
                         Modifier
                       </Link>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                 <div className="dash-empty-card">
                   <h4 style={{ margin: 0, fontSize: 18, color: '#FFFFFF' }}>Aucun produit enregistré dans vos favoris</h4>
                   <p style={{ margin: '8px 0 16px', fontSize: 14, color: 'var(--text-secondary)' }}>
-                    Cliquez sur l'icône marque-page sur n'importe quelle carte de produit pour le retrouver ici !
+                    Cliquez sur l'icône marque-page sur une carte produit ou sur sa fiche détail pour le retrouver ici !
                   </p>
                   <Link to="/products" className="btn btn-primary">Explorer les produits</Link>
                 </div>

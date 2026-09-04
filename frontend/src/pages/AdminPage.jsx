@@ -5,6 +5,7 @@ import Footer from '../components/Footer'
 import {
   getStats, getAllUsers, deleteUser, toggleAdmin, createAdmin,
   adminDeleteProduct, adminDeleteCategory,
+  getPendingCategories, approveCategory, rejectCategory,
   updateOwnName, requestEmailChangeOtp, confirmEmailChange,
   requestPasswordChangeOtp, confirmPasswordChange,
   updateOtherAdmin, resetOtherAdminPassword
@@ -28,6 +29,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState([])
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
+  const [pendingCategories, setPendingCategories] = useState([])
   const [userSearch, setUserSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [detailsUser, setDetailsUser] = useState(null)
@@ -48,16 +50,18 @@ export default function AdminPage() {
     async function loadAll() {
       setLoading(true)
       try {
-        const [s, u, p, c] = await Promise.all([
+        const [s, u, p, c, pc] = await Promise.all([
           getStats(),
           getAllUsers(),
           getProducts(),
-          getCategories()
+          getCategories(),
+          getPendingCategories()
         ])
         setStats(s || null)
         setUsers(Array.isArray(u) ? u : [])
         setProducts(Array.isArray(p) ? p : [])
         setCategories(Array.isArray(c) ? c : [])
+        setPendingCategories(Array.isArray(pc) ? pc : [])
       } catch (err) {
         console.error('Erreur chargement admin:', err)
         setAdminError(err.message || 'Erreur lors du chargement des données')
@@ -147,6 +151,30 @@ export default function AdminPage() {
     }
   }
 
+  async function handleApproveCategory(id) {
+    resetAdminFeedback()
+    try {
+      const { category } = await approveCategory(id)
+      setPendingCategories(pendingCategories.filter(c => c._id !== id))
+      setCategories([...categories, category])
+      setAdminMessage('Catégorie approuvée et publiée.')
+    } catch (err) {
+      setAdminError(err.message)
+    }
+  }
+
+  async function handleRejectCategory(id) {
+    if (!window.confirm('Rejeter cette catégorie ? Les produits qui la référençaient repasseront sans catégorie.')) return
+    resetAdminFeedback()
+    try {
+      await rejectCategory(id)
+      setPendingCategories(pendingCategories.filter(c => c._id !== id))
+      setAdminMessage('Catégorie rejetée.')
+    } catch (err) {
+      setAdminError(err.message)
+    }
+  }
+
   async function handleNameSubmit(e) {
     e.preventDefault()
     resetAdminFeedback()
@@ -204,7 +232,8 @@ export default function AdminPage() {
     e.preventDefault()
     resetAdminFeedback()
     try {
-      await confirmPasswordChange(passwordForm.otpCode)
+      const { token } = await confirmPasswordChange(passwordForm.otpCode)
+      if (token) saveAuth(token, currentUser)
       setPasswordForm({ currentPassword: '', newPassword: '', otpCode: '', step: 'idle' })
       setAdminMessage('Mot de passe mis à jour.')
     } catch (err) {
@@ -320,6 +349,9 @@ export default function AdminPage() {
                 <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
               </svg>
               <span>Catégories ({(categories || []).length})</span>
+              {pendingCategories.length > 0 && (
+                <span className="admin-tab-badge" title="En attente de validation">{pendingCategories.length}</span>
+              )}
             </button>
 
             {currentUser?.isSuperAdmin && (
@@ -356,10 +388,13 @@ export default function AdminPage() {
           {!loading && tab === 'categories' && (
             <AdminCategoriesTab
               categories={categories}
+              pendingCategories={pendingCategories}
               newCategoryForm={newCategoryForm}
               setNewCategoryForm={setNewCategoryForm}
               handleCreateCategorySubmit={handleCreateCategorySubmit}
               handleDeleteCategory={handleDeleteCategory}
+              handleApproveCategory={handleApproveCategory}
+              handleRejectCategory={handleRejectCategory}
               adminMessage={adminMessage}
               adminError={adminError}
             />

@@ -110,7 +110,7 @@ export default function SpotlightSearch({ isOpen, onClose }) {
               <div className="spotlight-info">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <strong className="spotlight-title">{p.name}</strong>
-                  {p.categoryId?.name && (
+                  {p.categoryId?.name && p.categoryId.status !== 'pending' && (
                     <span className="spotlight-tag" style={{ background: p.categoryId.color + '22', color: p.categoryId.color || '#38BDF8' }}>
                       {p.categoryId.name}
                     </span>

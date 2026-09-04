@@ -6,7 +6,7 @@ import ProductComments from '../components/ProductComments'
 import ContactMakerModal from '../components/ContactMakerModal'
 import AuthPromptModal from '../components/AuthPromptModal'
 import { voteProduct, unvoteProduct, getProductById, getMyVotes } from '../services/product.service'
-import { getToken } from '../services/auth.service'
+import { getToken, getBookmarks, toggleBookmark } from '../services/auth.service'
 import { useAuthGate } from '../hooks/useAuthGate'
 import './ProductDetailPage.css'
 
@@ -14,6 +14,7 @@ export default function ProductDetailPage() {
   const { id } = useParams()
   const [product, setProduct] = useState(null)
   const [voted, setVoted] = useState(false)
+  const [bookmarked, setBookmarked] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [contactOpen, setContactOpen] = useState(false)
@@ -33,6 +34,9 @@ export default function ProductDetailPage() {
         if (getToken()) {
           const myVotes = await getMyVotes()
           setVoted(myVotes.includes(id))
+
+          const myBookmarks = await getBookmarks()
+          setBookmarked((myBookmarks.bookmarks || []).some(b => b._id === id))
         }
       } catch (err) {
         setError(err.message)
@@ -75,6 +79,17 @@ export default function ProductDetailPage() {
 
   function handleVoteClick() {
     requireAuth(toggleVote)
+  }
+
+  function handleBookmarkClick() {
+    requireAuth(async () => {
+      try {
+        const res = await toggleBookmark(id)
+        setBookmarked(res.isBookmarked)
+      } catch (err) {
+        console.error(err.message)
+      }
+    })
   }
 
   async function handleShare() {
@@ -150,10 +165,10 @@ export default function ProductDetailPage() {
                 e.currentTarget.src = 'https://placehold.co/80/1e293b/ffffff?text=' + encodeURIComponent(product.name?.charAt(0) || 'P')
               }}
             />
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <div className="detail-title-block">
+              <div className="detail-title-row">
                 <h1>{product.name}</h1>
-                {product.categoryId?.name && (
+                {product.categoryId?.name && product.categoryId.status !== 'pending' && (
                   <span className="category-tag">
                     <span className="category-dot" style={{ background: product.categoryId.color || '#38BDF8' }} />
                     {product.categoryId.name}
@@ -184,13 +199,27 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            <button
-              className={`votes-badge detail-votes ${voted ? 'voted' : ''}`}
-              onClick={handleVoteClick}
-            >
-              <span>▲</span>
-              <span>{product.votesCount}</span>
-            </button>
+            <div className="detail-header-actions">
+              <button
+                className={`votes-badge detail-votes ${voted ? 'voted' : ''}`}
+                onClick={handleVoteClick}
+              >
+                <span>▲</span>
+                <span>{product.votesCount}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`product-bookmark-btn detail-bookmark-btn ${bookmarked ? 'bookmarked' : ''}`}
+                onClick={handleBookmarkClick}
+                title={bookmarked ? 'Retirer des favoris' : 'Enregistrer dans les favoris'}
+                aria-label="Sauvegarder le produit"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Carrousel / Galerie de Captures d'écran */}
@@ -213,7 +242,7 @@ export default function ProductDetailPage() {
             <h3 style={{ fontSize: 16, color: '#FFFFFF', marginBottom: 12 }}>À propos de ce produit</h3>
             <p className="detail-description">{product.description}</p>
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginTop: 24 }}>
+            <div className="detail-actions-row">
               <a href={product.websiteUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-glow">
                 Visiter le site officiel ↗
               </a>

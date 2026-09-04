@@ -1,14 +1,69 @@
 export default function AdminCategoriesTab({
   categories,
+  pendingCategories = [],
   newCategoryForm,
   setNewCategoryForm,
   handleCreateCategorySubmit,
   handleDeleteCategory,
+  handleApproveCategory,
+  handleRejectCategory,
   adminMessage,
   adminError
 }) {
   return (
     <div className="admin-tab-content">
+      {/* File d'attente : catégories créées par des utilisateurs, en attente de validation */}
+      {pendingCategories.length > 0 && (
+        <div className="admin-panel" style={{ marginBottom: 28, border: '1px solid rgba(245, 158, 11, 0.35)' }}>
+          <div className="admin-panel-header" style={{ marginBottom: 16, paddingBottom: 0, borderBottom: 'none' }}>
+            <div>
+              <h3 style={{ margin: 0 }}>En attente de validation ({pendingCategories.length})</h3>
+              <p style={{ margin: '4px 0 0', fontSize: 13.5, color: 'var(--text-secondary)' }}>
+                Créées par des utilisateurs lors de la soumission d'un produit. Tant qu'elles ne sont
+                pas approuvées, le produit associé reste publié sans catégorie affichée publiquement.
+              </p>
+            </div>
+          </div>
+
+          <div className="admin-categories-grid">
+            {pendingCategories.map(c => (
+              <div key={c._id} className="admin-category-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+                  <span className="category-dot" style={{ background: c.color || '#38BDF8', width: 12, height: 12, boxShadow: `0 0 10px ${c.color || '#38BDF8'}` }} />
+                  <div style={{ minWidth: 0 }}>
+                    <strong style={{ display: 'block', fontSize: 15, color: '#FFFFFF', fontFamily: 'var(--font-display)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {c.name}
+                    </strong>
+                    <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      Demandée par {c.createdBy?.name || 'un utilisateur'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleApproveCategory(c._id)}
+                    title="Approuver"
+                    style={{ padding: '6px 12px', fontSize: 12.5 }}
+                  >
+                    Approuver
+                  </button>
+                  <button
+                    className="dash-btn-delete"
+                    onClick={() => handleRejectCategory(c._id)}
+                    title="Rejeter"
+                    style={{ padding: '6px 12px', fontSize: 12.5 }}
+                  >
+                    Rejeter
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Formulaire de création de catégorie */}
       <div className="admin-panel" style={{ marginBottom: 28 }}>
         <div className="admin-panel-header" style={{ marginBottom: 20, paddingBottom: 0, borderBottom: 'none' }}>
